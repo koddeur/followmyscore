@@ -81,10 +81,12 @@ Apple (Sign in with Apple) n'est pas câblé : ça nécessite un compte dévelop
 
 ## Rôles
 
-- **USER** : peut créer un match, mettre à jour le score/statut, poster des commentaires.
-- **EDITOR** : en plus, peut saisir les compositions d'équipe et ajouter les buts/buteurs
-  (même sans composition existante). Ajouter un but incrémente automatiquement le score.
-- **ADMIN** : en plus, peut changer le rôle des autres utilisateurs (`/admin/users`).
+- **USER** : peut créer un match, mettre à jour le score/statut, saisir les compositions
+  d'équipe, ajouter les buts/cartons/remplacements et poster des commentaires. Ajouter un
+  but incrémente automatiquement le score.
+- **ADMIN** : en plus, peut modifier ou supprimer un match, supprimer un club, gérer le rôle
+  des autres utilisateurs (`/admin/users`) et consulter/traiter les messages de contact
+  (`/admin/contact-messages`).
 
 Tout le site est consultable sans compte. Se connecter est requis pour mettre à jour un
 match ou commenter.
@@ -106,7 +108,7 @@ Comptes créés par le seed (mot de passe `password123`) :
 | Email | Rôle |
 | --- | --- |
 | admin@live-score.test | ADMIN |
-| editeur@live-score.test | EDITOR |
+| editeur@live-score.test | USER |
 | supporter@live-score.test | USER |
 
 ## Déploiement (Vercel)
@@ -122,8 +124,7 @@ Le client Prisma est généré dans `generated/prisma` (ignoré par git, régén
 ## Notes techniques
 
 - Prisma 7 sépare la config CLI (`prisma.config.ts`, `DATABASE_URL`) du client applicatif,
-  qui se connecte via un driver adapter (`src/lib/prisma.ts`). Voir
-  `.agents/skills/prisma-database-setup/` (généré par `prisma init`) pour la référence.
+  qui se connecte via un driver adapter (`src/lib/prisma.ts`).
 - Les mises à jour "en direct" utilisent la revalidation Next.js après chaque action serveur
   + un rafraîchissement client léger (`LiveRefresher`, toutes les 20s) sur les matchs en
   cours. Pas de WebSocket : suffisant pour du amateur, à remplacer par Pusher/Ably si le
