@@ -1,0 +1,253 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  HALFTIME
+  INTERRUPTED
+  FINISHED
+  POSTPONED
+  CANCELLED
+}
+
+enum MatchSource {
+  MANUAL
+  FFF
+}
+
+enum UpdateType {
+  STATUS
+  SCORE
+  GOAL
+  CARD
+  LINEUP
+  NOTE
+  SUBSTITUTION
+}
+
+enum CardType {
+  YELLOW
+  RED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  username     String   @unique
+  email        String   @unique
+  passwordHash String?
+  avatarUrl    String?
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+
+  matchesCreated Match[]       @relation("MatchCreatedBy")
+  matchUpdates   MatchUpdate[]
+  comments       Comment[]
+  goals          Goal[]
+  cards          Card[]
+  lineups        Lineup[]
+  substitutions  Substitution[]
+}
+
+model Club {
+  id        String   @id @default(cuid())
+  name      String
+  shortName String?
+  city      String?
+  logoUrl   String?
+  fffId     String?  @unique
+  createdAt DateTime @default(now())
+
+  players    Player[]
+  homeMatches Match[] @relation("HomeClub")
+  awayMatches Match[] @relation("AwayClub")
+  goals      Goal[]
+  cards      Card[]
+  lineups    Lineup[]
+  substitutions Substitution[]
+}
+
+model Player {
+  id        String  @id @default(cuid())
+  clubId    String
+  club      Club    @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  name      String
+  number    Int?
+  position  String?
+  createdAt DateTime @default(now())
+
+  lineupEntries LineupEntry[]
+
+  @@index([clubId])
+}
+
+model Match {
+  id          String      @id @default(cuid())
+  homeClubId  String
+  awayClubId  String
+  homeClub    Club        @relation("HomeClub", fields: [homeClubId], references: [id])
+  awayClub    Club        @relation("AwayClub", fields: [awayClubId], references: [id])
+  homeScore   Int         @default(0)
+  awayScore   Int         @default(0)
+  status      MatchStatus @default(SCHEDULED)
+  competition String?
+  venue       String?
+  kickoffAt   DateTime?
+  source      MatchSource @default(MANUAL)
+  startedAt   DateTime?
+  endedAt     DateTime?
+  viewCount   Int         @default(0)
+  fffId       String?     @unique
+  createdById String?
+  createdBy   User?       @relation("MatchCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  updates  MatchUpdate[]
+  comments Comment[]
+  goals    Goal[]
+  cards    Card[]
+  lineups  Lineup[]
+  substitutions Substitution[]
+
+  @@index([homeClubId])
+  @@index([awayClubId])
+  @@index([status])
+}
+
+model MatchUpdate {
+  id         String     @id @default(cuid())
+  matchId    String
+  match      Match      @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  type       UpdateType
+  message    String?
+  homeScore  Int?
+  awayScore  Int?
+  status     MatchStatus?
+  createdAt  DateTime   @default(now())
+
+  @@index([matchId, createdAt])
+}
+
+model Goal {
+  id           String   @id @default(cuid())
+  matchId      String
+  match        Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  clubId       String
+  club         Club     @relation(fields: [clubId], references: [id])
+  scorerName   String?
+  scorerNumber Int?
+  assistName   String?
+  assistNumber Int?
+  minute       Int?
+  ownGoal      Boolean  @default(false)
+  penalty      Boolean  @default(false)
+  createdById  String?
+  createdBy    User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+
+  @@index([matchId])
+}
+
+model Card {
+  id          String   @id @default(cuid())
+  matchId     String
+  match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  clubId      String
+  club        Club     @relation(fields: [clubId], references: [id])
+  playerName  String?
+  number      Int?
+  type        CardType
+  minute      Int?
+  createdById String?
+  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+
+  @@index([matchId])
+}
+
+model Substitution {
+  id              String   @id @default(cuid())
+  matchId         String
+  match           Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  clubId          String
+  club            Club     @relation(fields: [clubId], references: [id])
+  playerInName    String?
+  playerInNumber  Int?
+  playerOutName   String?
+  playerOutNumber Int?
+  minute          Int?
+  createdById     String?
+  createdBy       User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
+
+  @@index([matchId])
+}
+
+model Lineup {
+  id          String   @id @default(cuid())
+  matchId     String
+  match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  clubId      String
+  club        Club     @relation(fields: [clubId], references: [id])
+  formation   String?
+  createdById String?
+  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  entries LineupEntry[]
+
+  @@unique([matchId, clubId])
+}
+
+model LineupEntry {
+  id         String  @id @default(cuid())
+  lineupId   String
+  lineup     Lineup  @relation(fields: [lineupId], references: [id], onDelete: Cascade)
+  playerId   String?
+  player     Player? @relation(fields: [playerId], references: [id])
+  playerName String
+  number     Int?
+  position   String?
+  isStarting Boolean @default(true)
+
+  @@index([lineupId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  matchId   String
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([matchId, createdAt])
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

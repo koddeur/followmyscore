@@ -1,69 +1,168 @@
-import Image from "next/image";
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { MatchCard } from "@/components/MatchCard";
+import { ClubSearch } from "@/components/ClubSearch";
+import { searchClubs } from "@/lib/clubSearch";
+import { STATUS_PRIORITY } from "@/lib/matchStatus";
 
-export default function Home() {
+export default async function HomePage({ searchParams }: PageProps<"/">) {
+  const { q } = await searchParams;
+  const query = typeof q === "string" ? q.trim() : "";
+
+  const [matches, liveMatches, mostViewedMatches, matchingClubs] = await Promise.all([
+    prisma.match.findMany({
+      where: query
+        ? {
+            OR: [
+              { homeClub: { name: { contains: query, mode: "insensitive" } } },
+              { awayClub: { name: { contains: query, mode: "insensitive" } } },
+            ],
+          }
+        : undefined,
+      include: { homeClub: true, awayClub: true },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    }),
+    query
+      ? Promise.resolve([])
+      : prisma.match.findMany({
+          where: { status: { in: ["LIVE", "HALFTIME", "INTERRUPTED"] } },
+          include: { homeClub: true, awayClub: true },
+          orderBy: { updatedAt: "desc" },
+          take: 6,
+        }),
+    query
+      ? Promise.resolve([])
+      : prisma.match.findMany({
+          where: { viewCount: { gt: 0 } },
+          include: { homeClub: true, awayClub: true },
+          orderBy: { viewCount: "desc" },
+          take: 6,
+        }),
+    query ? searchClubs(query, { limit: 25 }) : Promise.resolve([]),
+  ]);
+
+  matches.sort((a, b) => STATUS_PRIORITY[a.status] - STATUS_PRIORITY[b.status]);
+
+  const clubsOverflow = matchingClubs.length > 24;
+  const shownClubs = clubsOverflow ? matchingClubs.slice(0, 24) : matchingClubs;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="space-y-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Matchs</h1>
+          <p className="text-sm text-zinc-500">
+            Résultats et suivi en direct des matchs de football amateur, mis à jour par la communauté.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <Link
+          href="/matches/new"
+          className="shrink-0 rounded-full bg-accent px-3.5 py-1.5 text-center text-sm font-medium text-accent-foreground hover:opacity-90"
+        >
+          Créer un match
+        </Link>
+      </div>
+
+      <ClubSearch defaultValue={query} />
+
+      {query && shownClubs.length > 0 && (
+        <div className="space-y-2">
+          <h2 className="text-sm font-medium text-zinc-500">Clubs</h2>
+          <div className="flex flex-wrap gap-2">
+            {shownClubs.map((club) => (
+              <Link
+                key={club.id}
+                href={`/clubs/${club.fffId ?? club.id}`}
+                className="flex items-center gap-2 rounded-full border border-border bg-card py-1 pl-1 pr-3 text-sm transition hover:border-accent/60"
+              >
+                {club.logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={club.logoUrl} alt="" className="h-6 w-6 rounded-full object-contain" />
+                ) : (
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-background text-[10px] font-semibold text-zinc-400">
+                    {club.name.charAt(0)}
+                  </span>
+                )}
+                <span>{club.name}</span>
+              </Link>
+            ))}
+            {clubsOverflow && (
+              <Link
+                href={`/recherche?q=${encodeURIComponent(query)}`}
+                className="flex items-center px-2 text-sm font-medium text-accent hover:underline"
+              >
+                Voir tous les résultats →
+              </Link>
+            )}
+          </div>
         </div>
-      </main>
+      )}
+
+      {liveMatches.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+            </span>
+            En ce moment
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {liveMatches.map((match) => (
+              <MatchCard key={match.id} match={match} showViews />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {mostViewedMatches.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold tracking-tight">Matchs les plus suivis</h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {mostViewedMatches.map((match) => (
+              <MatchCard key={match.id} match={match} showViews />
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        {!query && (
+          <div className="flex items-center justify-between gap-3">
+            {(liveMatches.length > 0 || mostViewedMatches.length > 0) && (
+              <h2 className="text-lg font-semibold tracking-tight">Tous les matchs</h2>
+            )}
+            {matches.length > 0 && (
+              <Link href="/matches" className="ml-auto text-sm font-medium text-accent hover:underline">
+                Voir tous les matchs →
+              </Link>
+            )}
+          </div>
+        )}
+
+        {matches.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-zinc-500">
+            {query ? (
+              <>Aucun match ne correspond à « {query} ».</>
+            ) : (
+              <>
+                Aucun match pour le moment.{" "}
+                <Link href="/matches/new" className="font-medium text-accent hover:underline">
+                  Crée le premier match
+                </Link>
+                .
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {matches.map((match) => (
+              <MatchCard key={match.id} match={match} showViews />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
