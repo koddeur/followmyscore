@@ -23,6 +23,7 @@ import { ClubLogo } from "@/components/ClubLogo";
 import { MatchViewTracker } from "@/components/MatchViewTracker";
 import { MatchHeaderEvents, type MatchHeaderEventItem } from "@/components/MatchHeaderEvents";
 import { RecentEventHighlight } from "@/components/RecentEventHighlight";
+import { FollowMatchButton } from "@/components/FollowMatchButton";
 import type { Metadata } from "next";
 
 export async function generateMetadata({ params }: PageProps<"/matches/[slug]">): Promise<Metadata> {
@@ -102,6 +103,15 @@ export default async function MatchPage({ params }: PageProps<"/matches/[slug]">
       ).map((c) => c.name)
     : [];
 
+  const [followerCount, isFollowing] = await Promise.all([
+    prisma.matchFollower.count({ where: { matchId: match.id } }),
+    user
+      ? prisma.matchFollower
+          .findUnique({ where: { matchId_userId: { matchId: match.id, userId: user.id } } })
+          .then((f) => f !== null)
+      : Promise.resolve(false),
+  ]);
+
   const homeLineup = match.lineups.find((l) => l.clubId === match.homeClubId) ?? null;
   const awayLineup = match.lineups.find((l) => l.clubId === match.awayClubId) ?? null;
 
@@ -115,6 +125,7 @@ export default async function MatchPage({ params }: PageProps<"/matches/[slug]">
     const goalItems: MatchHeaderEventItem[] = match!.goals
       .filter((g) => g.club.id === clubId)
       .map((g) => ({
+        id: g.id,
         kind: "goal",
         minute: g.minute,
         playerName: g.scorerName,
@@ -126,6 +137,7 @@ export default async function MatchPage({ params }: PageProps<"/matches/[slug]">
     const cardItems: MatchHeaderEventItem[] = match!.cards
       .filter((c) => c.club.id === clubId)
       .map((c) => ({
+        id: c.id,
         kind: c.type === "YELLOW" ? "yellow" : "red",
         minute: c.minute,
         playerName: c.playerName,
@@ -135,6 +147,7 @@ export default async function MatchPage({ params }: PageProps<"/matches/[slug]">
     const substitutionItems: MatchHeaderEventItem[] = match!.substitutions
       .filter((s) => s.club.id === clubId)
       .map((s) => ({
+        id: s.id,
         kind: "substitution",
         minute: s.minute,
         playerName: s.playerInName,
@@ -162,8 +175,25 @@ export default async function MatchPage({ params }: PageProps<"/matches/[slug]">
       <MatchViewTracker matchId={match.id} />
 
       <section className="rounded-2xl border border-border bg-card p-6">
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-500">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="relative gap-2 pr-14 text-xs text-zinc-500 sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:pr-0">
+          {/* Mobile: competition + date on one row, venue on its own row below */}
+          <div className="flex flex-col gap-1 sm:hidden">
+            {(match.competition || match.kickoffAt) && (
+              <div className="flex items-center gap-2">
+                {match.competition && <span>{match.competition}</span>}
+                {match.kickoffAt && (
+                  <span>
+                    {match.competition && "· "}
+                    {format(match.kickoffAt, "d MMMM yyyy 'à' HH:mm", { locale: fr })}
+                  </span>
+                )}
+              </div>
+            )}
+            {match.venue && <div>{match.venue}</div>}
+          </div>
+
+          {/* Desktop: single inline line with separators */}
+          <div className="hidden flex-wrap items-center gap-2 sm:flex">
             {match.competition && <span>{match.competition}</span>}
             {match.venue && <span>{match.competition && "· "}{match.venue}</span>}
             {match.kickoffAt && (
@@ -173,7 +203,11 @@ export default async function MatchPage({ params }: PageProps<"/matches/[slug]">
               </span>
             )}
           </div>
-          <span className="flex shrink-0 items-center gap-1" title="Nombre de vues">
+
+          <span
+            className="absolute right-0 top-0 flex shrink-0 items-center gap-1 sm:static"
+            title="Nombre de vues"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -223,6 +257,7 @@ export default async function MatchPage({ params }: PageProps<"/matches/[slug]">
           </div>
           <span className="flex shrink-0 items-center gap-1 rounded-xl bg-background px-2.5 py-1.5 font-mono text-xl font-bold tabular-nums sm:px-4 sm:py-2 sm:text-3xl">
             <RecentEventHighlight
+              key={lastHomeGoalAt.getTime()}
               createdAt={lastHomeGoalAt}
               className="rounded-md px-1"
               highlightClassName="bg-accent/20 text-accent"
@@ -232,6 +267,7 @@ export default async function MatchPage({ params }: PageProps<"/matches/[slug]">
             </RecentEventHighlight>
             <span>–</span>
             <RecentEventHighlight
+              key={lastAwayGoalAt.getTime()}
               createdAt={lastAwayGoalAt}
               className="rounded-md px-1"
               highlightClassName="bg-accent/20 text-accent"
@@ -263,33 +299,54 @@ export default async function MatchPage({ params }: PageProps<"/matches/[slug]">
           <ShareButtons title={`${match.homeClub.name} vs ${match.awayClub.name}`} />
         </div>
 
-        {user ? (
-          <div className="mt-6 space-y-4 border-t border-border pt-4">
-            <MatchEvents
-              matchId={match.id}
-              homeClub={match.homeClub}
-              awayClub={match.awayClub}
-              homeLineupEntries={homeLineupEntries}
-              awayLineupEntries={awayLineupEntries}
-              started={started}
-              ended={ended}
-              isHalftime={isHalftime}
-            />
-            <div className="flex justify-center">
-              <StatusControls key={match.status} matchId={match.id} status={match.status} />
-            </div>
-          </div>
-        ) : (
-          <p className="mt-6 border-t border-border pt-4 text-center text-sm text-zinc-500">
-            <Link
-              href={`/login?callbackUrl=${encodeURIComponent(`/matches/${match.slug}`)}`}
-              className="font-medium text-accent hover:underline"
-            >
-              Connecte-toi
-            </Link>{" "}
-            pour mettre à jour ce match.
+        <div className="mt-6 border-t border-border pt-4">
+          <p className="text-sm text-zinc-500">
+            {followerCount === 0
+              ? "Personne n'est éditeur sur ce match pour l'instant."
+              : `${followerCount} personne${followerCount > 1 ? "s" : ""} ${
+                  followerCount > 1 ? "sont" : "est"
+                } éditeur${followerCount > 1 ? "s" : ""} sur ce match.`}
           </p>
-        )}
+
+          {!user && (
+            <p className="mt-3 text-sm text-zinc-500">
+              <Link
+                href={`/login?callbackUrl=${encodeURIComponent(`/matches/${match.slug}`)}`}
+                className="font-medium text-accent hover:underline"
+              >
+                Connecte-toi
+              </Link>{" "}
+              pour participer à la gestion de ce match.
+            </p>
+          )}
+
+          {user && !isFollowing && (
+            <div className="mt-3">
+              <FollowMatchButton matchId={match.id} isFollowing={false} />
+            </div>
+          )}
+
+          {user && isFollowing && (
+            <div className="mt-4 space-y-4">
+              <div className="flex justify-end">
+                <FollowMatchButton matchId={match.id} isFollowing />
+              </div>
+              <MatchEvents
+                matchId={match.id}
+                homeClub={match.homeClub}
+                awayClub={match.awayClub}
+                homeLineupEntries={homeLineupEntries}
+                awayLineupEntries={awayLineupEntries}
+                started={started}
+                ended={ended}
+                isHalftime={isHalftime}
+              />
+              <div className="flex justify-center">
+                <StatusControls key={match.status} matchId={match.id} status={match.status} />
+              </div>
+            </div>
+          )}
+        </div>
       </section>
 
       <section className="rounded-2xl border border-border bg-card p-6">
@@ -300,7 +357,7 @@ export default async function MatchPage({ params }: PageProps<"/matches/[slug]">
           awayClub={match.awayClub}
           homeLineupEntries={homeLineupEntries}
           awayLineupEntries={awayLineupEntries}
-          canEdit={Boolean(user)}
+          canEdit={isFollowing}
         />
       </section>
 
@@ -312,7 +369,7 @@ export default async function MatchPage({ params }: PageProps<"/matches/[slug]">
           awayClub={match.awayClub}
           homeLineupEntries={homeLineupEntries}
           awayLineupEntries={awayLineupEntries}
-          canEdit={Boolean(user)}
+          canEdit={isFollowing}
         />
       </section>
 
@@ -324,14 +381,14 @@ export default async function MatchPage({ params }: PageProps<"/matches/[slug]">
           awayClub={match.awayClub}
           homeLineupEntries={homeLineupEntries}
           awayLineupEntries={awayLineupEntries}
-          canEdit={Boolean(user)}
+          canEdit={isFollowing}
         />
       </section>
 
       <section className="grid gap-6 rounded-2xl border border-border bg-card p-6 sm:grid-cols-2">
         <div>
           <LineupView clubName={match.homeClub.name} lineup={homeLineup} />
-          {user && (
+          {isFollowing && (
             <div className="mt-3 border-t border-border pt-3">
               <LineupEditor
                 matchId={match.id}
@@ -344,7 +401,7 @@ export default async function MatchPage({ params }: PageProps<"/matches/[slug]">
         </div>
         <div>
           <LineupView clubName={match.awayClub.name} lineup={awayLineup} />
-          {user && (
+          {isFollowing && (
             <div className="mt-3 border-t border-border pt-3">
               <LineupEditor
                 matchId={match.id}

@@ -10,6 +10,14 @@ const RECENT_MS = 2 * 60 * 1000;
  * fades back to normal on its own (no page refresh needed) — LiveRefresher
  * handles surfacing brand-new events, this handles them stop looking "new".
  *
+ * State is only (re)computed at mount, so callers whose `createdAt` can
+ * change for the *same* element position (e.g. the score number, updated by
+ * each new goal) must pass `key={createdAt.getTime()}` to force a fresh
+ * mount — otherwise a LiveRefresher poll swaps the prop in without React
+ * re-running the initial "is this recent" check. List items keyed by their
+ * own id (goals, timeline entries...) don't need this: a new event is
+ * already a new key, and an existing one's createdAt never changes.
+ *
  * `className` holds always-on structural classes (padding, rounding, border
  * width); `highlightClassName`/`idleClassName` are the two mutually
  * exclusive color states, kept separate so they never both apply the same

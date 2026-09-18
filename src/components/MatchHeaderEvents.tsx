@@ -3,6 +3,7 @@ import { sortByMinuteThenCreatedAt } from "@/lib/eventSort";
 import { GoalIcon, CardIcon, SubstitutionIcon } from "@/components/MatchEventIcons";
 
 export interface MatchHeaderEventItem {
+  id: string;
   kind: "goal" | "yellow" | "red" | "substitution";
   minute: number | null;
   playerName: string | null;
@@ -38,7 +39,7 @@ export function MatchHeaderEvents({
 
   return (
     <ul className={`mt-1 space-y-0.5 text-xs text-zinc-500 ${align === "right" ? "text-right" : "text-left"}`}>
-      {sorted.map((item, i) => {
+      {sorted.map((item) => {
         const row = (
           <div
             className={`flex items-center gap-1 ${align === "right" ? "justify-end" : "justify-start"}`}
@@ -65,7 +66,7 @@ export function MatchHeaderEvents({
         );
 
         return (
-          <li key={i}>
+          <li key={item.id}>
             <RecentEventHighlight createdAt={item.createdAt} className="rounded px-1">
               {row}
             </RecentEventHighlight>

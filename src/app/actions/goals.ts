@@ -166,8 +166,16 @@ export async function deleteGoal(goalId: string) {
   const goal = await prisma.goal.findUnique({ where: { id: goalId } });
   if (!goal) return;
 
+  const match = await prisma.match.findUniqueOrThrow({ where: { id: goal.matchId } });
+  // Same rule as addGoal/updateGoal: the club field alone determines who was credited.
+  const scoredHome = goal.clubId === match.homeClubId;
+
   await prisma.$transaction([
     prisma.goal.delete({ where: { id: goalId } }),
+    prisma.match.update({
+      where: { id: goal.matchId },
+      data: scoredHome ? { homeScore: { decrement: 1 } } : { awayScore: { decrement: 1 } },
+    }),
     prisma.matchUpdate.create({
       data: {
         matchId: goal.matchId,
