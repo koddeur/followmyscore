@@ -1,7 +1,9 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import Link from "next/link";
 import { authenticate } from "@/app/actions/auth";
+import { PasswordField } from "@/components/PasswordField";
 
 export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
   const [state, action, pending] = useActionState(authenticate, undefined);
@@ -25,19 +27,17 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
         />
       </div>
-      <div>
-        <label htmlFor="password" className="mb-1 block text-sm font-medium">
-          Mot de passe
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          required
-          autoComplete="current-password"
-          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent"
-        />
-      </div>
+      <PasswordField
+        id="password"
+        name="password"
+        label="Mot de passe"
+        autoComplete="current-password"
+        labelAddon={
+          <Link href="/forgot-password" className="text-xs font-medium text-accent hover:underline">
+            Mot de passe oublié ?
+          </Link>
+        }
+      />
 
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
 

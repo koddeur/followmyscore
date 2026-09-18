@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { MatchStatus, UpdateType } from "../../generated/prisma/enums";
@@ -10,7 +11,7 @@ export interface TimelineEntry {
   awayScore: number | null;
   status: MatchStatus | null;
   createdAt: Date;
-  user: { name: string } | null;
+  user: { name: string; username: string } | null;
 }
 
 const STATUS_LABELS: Record<MatchStatus, string> = {
@@ -56,8 +57,14 @@ export function Timeline({ entries }: { entries: TimelineEntry[] }) {
           <div>
             <p>{describe(entry)}</p>
             <p className="text-xs text-zinc-500">
-              {entry.user?.name ?? "Utilisateur supprimé"} ·{" "}
-              {format(entry.createdAt, "d MMM 'à' HH:mm", { locale: fr })}
+              {entry.user ? (
+                <Link href={`/users/${entry.user.username}`} className="font-medium hover:text-accent hover:underline">
+                  {entry.user.name}
+                </Link>
+              ) : (
+                "Utilisateur supprimé"
+              )}{" "}
+              · {format(entry.createdAt, "d MMM 'à' HH:mm", { locale: fr })}
             </p>
           </div>
         </li>

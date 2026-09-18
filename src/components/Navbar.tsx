@@ -36,7 +36,7 @@ export function Navbar({ user }: { user: NavUser | null }) {
         </Link>
 
         <div className="hidden justify-self-center sm:flex">
-          <div className="w-full max-w-xs">
+          <div className="w-full max-w-xl">
             <NavSearch />
           </div>
         </div>

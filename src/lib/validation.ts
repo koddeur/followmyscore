@@ -61,6 +61,22 @@ export const updatePasswordSchema = z
     path: ["confirmPassword"],
   });
 
+export const forgotPasswordSchema = z.object({
+  email: z.email({ error: "Adresse email invalide." }).trim().toLowerCase(),
+});
+
+export const resetPasswordSchema = z
+  .object({
+    newPassword: z
+      .string()
+      .min(8, { error: "Le mot de passe doit contenir au moins 8 caractères." }),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    error: "Les mots de passe ne correspondent pas.",
+    path: ["confirmPassword"],
+  });
+
 export const createMatchSchema = z.object({
   homeClubName: z.string().trim().min(2, { error: "Nom du club domicile requis." }),
   awayClubName: z.string().trim().min(2, { error: "Nom du club extérieur requis." }),
