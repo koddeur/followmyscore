@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser, requireRole } from "@/lib/dal";
 import { findOrCreateClub } from "@/lib/clubs";
+import { generateMatchSlug } from "@/lib/matchSlug";
 import {
   createMatchSchema,
   endMatchSchema,
@@ -43,8 +44,12 @@ export async function createMatch(
     findOrCreateClub(awayClubName),
   ]);
 
+  const kickoffDate = kickoffAt ? new Date(kickoffAt) : new Date();
+  const slug = await generateMatchSlug(homeClub.name, awayClub.name, kickoffDate);
+
   const match = await prisma.match.create({
     data: {
+      slug,
       homeClubId: homeClub.id,
       awayClubId: awayClub.id,
       competition: competition || null,
@@ -62,7 +67,7 @@ export async function createMatch(
     },
   });
 
-  redirect(`/matches/${match.id}`);
+  redirect(`/matches/${match.slug}`);
 }
 
 export async function updateMatchInfo(matchId: string, formData: FormData) {
@@ -108,7 +113,7 @@ export async function updateMatchInfo(matchId: string, formData: FormData) {
     }),
   ]);
 
-  revalidatePath(`/matches/${matchId}`);
+  revalidatePath("/matches/[slug]", "page");
   revalidatePath("/");
 }
 
@@ -131,7 +136,7 @@ export async function startMatch(matchId: string, formData: FormData) {
     }),
   ]);
 
-  revalidatePath(`/matches/${matchId}`);
+  revalidatePath("/matches/[slug]", "page");
   revalidatePath("/");
 }
 
@@ -154,7 +159,7 @@ export async function endMatch(matchId: string, formData: FormData) {
     }),
   ]);
 
-  revalidatePath(`/matches/${matchId}`);
+  revalidatePath("/matches/[slug]", "page");
   revalidatePath("/");
 }
 
@@ -179,7 +184,7 @@ export async function updateStatus(matchId: string, formData: FormData) {
     }),
   ]);
 
-  revalidatePath(`/matches/${matchId}`);
+  revalidatePath("/matches/[slug]", "page");
   revalidatePath("/");
 }
 

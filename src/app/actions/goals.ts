@@ -84,7 +84,7 @@ export async function addGoal(matchId: string, formData: FormData) {
     }),
   ]);
 
-  revalidatePath(`/matches/${matchId}`);
+  revalidatePath("/matches/[slug]", "page");
   revalidatePath("/");
 }
 
@@ -156,7 +156,7 @@ export async function updateGoal(goalId: string, formData: FormData) {
     }),
   ]);
 
-  revalidatePath(`/matches/${goal.matchId}`);
+  revalidatePath("/matches/[slug]", "page");
   revalidatePath("/");
 }
 
@@ -178,6 +178,6 @@ export async function deleteGoal(goalId: string) {
     }),
   ]);
 
-  revalidatePath(`/matches/${goal.matchId}`);
+  revalidatePath("/matches/[slug]", "page");
   revalidatePath("/");
 }

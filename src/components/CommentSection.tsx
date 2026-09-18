@@ -12,11 +12,13 @@ export interface CommentData {
 
 export function CommentSection({
   matchId,
+  matchSlug,
   comments,
   currentUserId,
   isAdmin = false,
 }: {
   matchId: string;
+  matchSlug: string;
   comments: CommentData[];
   currentUserId: string | null;
   isAdmin?: boolean;
@@ -33,7 +35,6 @@ export function CommentSection({
             <CommentItem
               key={comment.id}
               comment={comment}
-              matchId={matchId}
               canEdit={comment.userId === currentUserId}
               canDelete={comment.userId === currentUserId || isAdmin}
             />
@@ -60,7 +61,7 @@ export function CommentSection({
       ) : (
         <p className="text-sm text-zinc-500">
           <Link
-            href={`/login?callbackUrl=${encodeURIComponent(`/matches/${matchId}`)}`}
+            href={`/login?callbackUrl=${encodeURIComponent(`/matches/${matchSlug}`)}`}
             className="font-medium text-accent hover:underline"
           >
             Connecte-toi

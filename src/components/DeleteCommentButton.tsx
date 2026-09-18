@@ -5,14 +5,8 @@ import type { FormEvent } from "react";
 import { deleteComment } from "@/app/actions/comments";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 
-export function DeleteCommentButton({
-  commentId,
-  matchId,
-}: {
-  commentId: string;
-  matchId: string;
-}) {
-  const action = deleteComment.bind(null, commentId, matchId);
+export function DeleteCommentButton({ commentId }: { commentId: string }) {
+  const action = deleteComment.bind(null, commentId);
   const [confirming, setConfirming] = useState(false);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {

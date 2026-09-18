@@ -125,6 +125,7 @@ model Player {
 
 model Match {
   id          String      @id @default(cuid())
+  slug        String      @unique
   homeClubId  String
   awayClubId  String
   homeClub    Club        @relation("HomeClub", fields: [homeClubId], references: [id])

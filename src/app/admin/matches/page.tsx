@@ -100,7 +100,7 @@ export default async function AdminMatchesPage({ searchParams }: PageProps<"/adm
               matches.map((match) => (
                 <tr key={match.id} className="border-b border-border last:border-0">
                   <td className="px-4 py-3">
-                    <Link href={`/matches/${match.id}`} className="hover:text-accent hover:underline">
+                    <Link href={`/matches/${match.slug}`} className="hover:text-accent hover:underline">
                       {match.homeClub.name}
                     </Link>
                   </td>

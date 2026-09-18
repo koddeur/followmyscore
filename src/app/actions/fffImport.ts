@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/dal";
 import { findOrCreateFffClub } from "@/lib/clubs";
+import { generateMatchSlug } from "@/lib/matchSlug";
 import {
   getFffClubCategories,
   getFffTeamMatchSummaries,
@@ -90,12 +91,12 @@ export async function lookupFffMatches(
 
 export async function importFffMatch(
   summary: FffMatchSummary
-): Promise<{ matchId: string } | { error: string }> {
+): Promise<{ matchSlug: string } | { error: string }> {
   const user = await requireUser("/login?callbackUrl=/matches/new");
 
   const existing = await prisma.match.findUnique({ where: { fffId: summary.fffId } });
   if (existing) {
-    return { matchId: existing.id };
+    return { matchSlug: existing.slug };
   }
 
   const [homeClub, awayClub] = await Promise.all([
@@ -103,8 +104,12 @@ export async function importFffMatch(
     findOrCreateFffClub(summary.awayClubFffId, summary.awayClubName),
   ]);
 
+  const kickoffDate = summary.kickoffAt ? new Date(summary.kickoffAt) : new Date();
+  const slug = await generateMatchSlug(homeClub.name, awayClub.name, kickoffDate);
+
   const match = await prisma.match.create({
     data: {
+      slug,
       homeClubId: homeClub.id,
       awayClubId: awayClub.id,
       competition: summary.competition,
@@ -124,5 +129,5 @@ export async function importFffMatch(
     },
   });
 
-  return { matchId: match.id };
+  return { matchSlug: match.slug };
 }

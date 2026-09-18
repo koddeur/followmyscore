@@ -105,7 +105,7 @@ export function FffImportPanel() {
       setImportingId(null);
       return;
     }
-    router.push(`/matches/${result.matchId}`);
+    router.push(`/matches/${result.matchSlug}`);
   }
 
   function reset() {

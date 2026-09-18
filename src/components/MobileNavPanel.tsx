@@ -20,8 +20,9 @@ function getServerSnapshot() {
 }
 
 /**
- * Sits as a sibling right after <header>, not inside it, so opening it never
- * resizes/shifts the sticky nav bar — it's a separate section below.
+ * Rendered inside the sticky <header>, below the trigger row, so it stays
+ * pinned at the top and reachable from anywhere on the page (not just when
+ * scrolled to the top) without resizing/shifting the trigger row itself.
  */
 export function MobileNavPanel({ user }: { user: NavUser | null }) {
   const panel = useSyncExternalStore(subscribeMobilePanel, getMobilePanel, getServerSnapshot);
@@ -70,7 +71,7 @@ export function MobileNavPanel({ user }: { user: NavUser | null }) {
               <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
               <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
             </svg>
-            Scores
+            Matchs
           </Link>
           <NavLinks user={user} variant="mobile" onNavigate={closeMobilePanel} />
           <ThemeToggle variant="row" />

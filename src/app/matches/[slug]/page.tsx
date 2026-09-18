@@ -24,11 +24,11 @@ import { MatchViewTracker } from "@/components/MatchViewTracker";
 import { MatchHeaderEvents, type MatchHeaderEventItem } from "@/components/MatchHeaderEvents";
 import type { Metadata } from "next";
 
-export async function generateMetadata({ params }: PageProps<"/matches/[id]">): Promise<Metadata> {
-  const { id } = await params;
+export async function generateMetadata({ params }: PageProps<"/matches/[slug]">): Promise<Metadata> {
+  const { slug } = await params;
 
   const match = await prisma.match.findUnique({
-    where: { id },
+    where: { slug },
     include: { homeClub: true, awayClub: true },
   });
 
@@ -50,9 +50,7 @@ export async function generateMetadata({ params }: PageProps<"/matches/[id]">): 
   const headersList = await headers();
   const host = headersList.get("host");
   const protocol = headersList.get("x-forwarded-proto") ?? "https";
-  const url = host ? `${protocol}://${host}/matches/${match.id}` : undefined;
-
-  const image = match.homeClub.logoUrl?.startsWith("http") ? match.homeClub.logoUrl : undefined;
+  const url = host ? `${protocol}://${host}/matches/${match.slug}` : undefined;
 
   return {
     title: `${title} — FollowMyScore`,
@@ -63,22 +61,20 @@ export async function generateMetadata({ params }: PageProps<"/matches/[id]">): 
       url,
       siteName: "FollowMyScore",
       type: "website",
-      images: image ? [{ url: image }] : undefined,
     },
     twitter: {
-      card: image ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title,
       description,
-      images: image ? [image] : undefined,
     },
   };
 }
 
-export default async function MatchPage({ params }: PageProps<"/matches/[id]">) {
-  const { id } = await params;
+export default async function MatchPage({ params }: PageProps<"/matches/[slug]">) {
+  const { slug } = await params;
 
   const match = await prisma.match.findUnique({
-    where: { id },
+    where: { slug },
     include: {
       homeClub: true,
       awayClub: true,
@@ -257,7 +253,7 @@ export default async function MatchPage({ params }: PageProps<"/matches/[id]">) 
         ) : (
           <p className="mt-6 border-t border-border pt-4 text-center text-sm text-zinc-500">
             <Link
-              href={`/login?callbackUrl=${encodeURIComponent(`/matches/${match.id}`)}`}
+              href={`/login?callbackUrl=${encodeURIComponent(`/matches/${match.slug}`)}`}
               className="font-medium text-accent hover:underline"
             >
               Connecte-toi
@@ -341,6 +337,7 @@ export default async function MatchPage({ params }: PageProps<"/matches/[id]">) 
         <h2 className="mb-3 text-lg font-semibold">Commentaires</h2>
         <CommentSection
           matchId={match.id}
+          matchSlug={match.slug}
           comments={match.comments}
           currentUserId={user?.id ?? null}
           isAdmin={isAdmin}

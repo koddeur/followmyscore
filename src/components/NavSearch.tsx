@@ -162,7 +162,7 @@ export function NavSearch({ size = "sm" }: { size?: "sm" | "lg" }) {
                     {results.matches.map((match) => (
                       <li key={match.id}>
                         <Link
-                          href={`/matches/${match.id}`}
+                          href={`/matches/${match.slug}`}
                           onClick={handleSelect}
                           className="flex items-center justify-between gap-2 px-3 py-2 text-sm hover:bg-background"
                         >

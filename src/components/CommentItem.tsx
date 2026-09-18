@@ -10,17 +10,15 @@ import type { CommentData } from "@/components/CommentSection";
 
 export function CommentItem({
   comment,
-  matchId,
   canEdit,
   canDelete,
 }: {
   comment: CommentData;
-  matchId: string;
   canEdit: boolean;
   canDelete: boolean;
 }) {
   const [editing, setEditing] = useState(false);
-  const action = updateComment.bind(null, comment.id, matchId);
+  const action = updateComment.bind(null, comment.id);
 
   if (editing) {
     return (
@@ -87,7 +85,7 @@ export function CommentItem({
                 </svg>
               </button>
             )}
-            {canDelete && <DeleteCommentButton commentId={comment.id} matchId={matchId} />}
+            {canDelete && <DeleteCommentButton commentId={comment.id} />}
           </div>
         )}
       </div>

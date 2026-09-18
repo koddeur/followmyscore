@@ -6,6 +6,15 @@ import { PrismaPg } from "@prisma/adapter-pg";
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
+function slugify(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 async function main() {
   const passwordHash = await bcrypt.hash("password123", 10);
 
@@ -45,8 +54,11 @@ async function main() {
   });
 
   if (!existing) {
+    const kickoffAt = new Date();
+    const slug = `${slugify(home.name)}-vs-${slugify(away.name)}-${kickoffAt.toISOString().slice(0, 10)}`;
     await prisma.match.create({
       data: {
+        slug,
         homeClubId: home.id,
         awayClubId: away.id,
         homeScore: 1,
@@ -54,7 +66,7 @@ async function main() {
         status: "LIVE",
         competition: "Coupe départementale",
         venue: "Stade municipal",
-        kickoffAt: new Date(),
+        kickoffAt,
         createdById: admin.id,
         updates: {
           create: { userId: admin.id, type: "NOTE", message: "Match créé" },

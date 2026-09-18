@@ -56,5 +56,5 @@ export async function saveLineup(matchId: string, clubId: string, formData: Form
     });
   });
 
-  revalidatePath(`/matches/${matchId}`);
+  revalidatePath("/matches/[slug]", "page");
 }

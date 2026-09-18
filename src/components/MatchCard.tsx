@@ -7,6 +7,7 @@ import type { MatchStatus } from "../../generated/prisma/enums";
 
 export interface MatchCardData {
   id: string;
+  slug: string;
   homeClub: { name: string; logoUrl: string | null };
   awayClub: { name: string; logoUrl: string | null };
   homeScore: number;
@@ -23,7 +24,7 @@ export function MatchCard({ match, showViews = false }: { match: MatchCardData; 
 
   return (
     <Link
-      href={`/matches/${match.id}`}
+      href={`/matches/${match.slug}`}
       className="block rounded-2xl border border-border bg-card p-4 transition hover:border-accent/60 hover:shadow-sm sm:p-5"
     >
       <div className="flex items-center justify-between gap-3">

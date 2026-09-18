@@ -3,6 +3,7 @@ import Link from "next/link";
 import { NavLinks } from "@/components/NavLinks";
 import { NavSearch } from "@/components/NavSearch";
 import { MobileNavTriggers } from "@/components/MobileNavTriggers";
+import { MobileNavPanel } from "@/components/MobileNavPanel";
 import { AccountMenu } from "@/components/AccountMenu";
 
 interface NavUser {
@@ -48,7 +49,7 @@ export function Navbar({ user }: { user: NavUser | null }) {
               href="/matches"
               className="flex h-9 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-accent bg-accent px-3 text-sm font-medium text-accent-foreground hover:opacity-90"
             >
-              Scores
+              Matchs
             </Link>
             <NavLinks user={user} />
           </nav>
@@ -57,6 +58,8 @@ export function Navbar({ user }: { user: NavUser | null }) {
           <MobileNavTriggers />
         </div>
       </div>
+
+      <MobileNavPanel user={user} />
     </header>
   );
 }

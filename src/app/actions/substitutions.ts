@@ -69,7 +69,7 @@ export async function addSubstitution(matchId: string, formData: FormData) {
     }),
   ]);
 
-  revalidatePath(`/matches/${matchId}`);
+  revalidatePath("/matches/[slug]", "page");
 }
 
 export async function updateSubstitution(substitutionId: string, formData: FormData) {
@@ -117,7 +117,7 @@ export async function updateSubstitution(substitutionId: string, formData: FormD
     }),
   ]);
 
-  revalidatePath(`/matches/${substitution.matchId}`);
+  revalidatePath("/matches/[slug]", "page");
 }
 
 export async function deleteSubstitution(substitutionId: string) {
@@ -138,5 +138,5 @@ export async function deleteSubstitution(substitutionId: string) {
     }),
   ]);
 
-  revalidatePath(`/matches/${substitution.matchId}`);
+  revalidatePath("/matches/[slug]", "page");
 }

@@ -70,7 +70,7 @@ export async function addCard(matchId: string, cardType: "YELLOW" | "RED", formD
     }),
   ]);
 
-  revalidatePath(`/matches/${matchId}`);
+  revalidatePath("/matches/[slug]", "page");
 }
 
 export async function updateCard(cardId: string, formData: FormData) {
@@ -117,7 +117,7 @@ export async function updateCard(cardId: string, formData: FormData) {
     }),
   ]);
 
-  revalidatePath(`/matches/${card.matchId}`);
+  revalidatePath("/matches/[slug]", "page");
 }
 
 export async function deleteCard(cardId: string) {
@@ -140,5 +140,5 @@ export async function deleteCard(cardId: string) {
     }),
   ]);
 
-  revalidatePath(`/matches/${card.matchId}`);
+  revalidatePath("/matches/[slug]", "page");
 }

@@ -15,10 +15,10 @@ export async function addComment(matchId: string, formData: FormData) {
     data: { matchId, userId: user.id, body: parsed.data.body },
   });
 
-  revalidatePath(`/matches/${matchId}`);
+  revalidatePath("/matches/[slug]", "page");
 }
 
-export async function updateComment(commentId: string, matchId: string, formData: FormData) {
+export async function updateComment(commentId: string, formData: FormData) {
   const user = await requireUser();
 
   const parsed = commentSchema.safeParse({ body: formData.get("body") });
@@ -29,15 +29,15 @@ export async function updateComment(commentId: string, matchId: string, formData
     data: { body: parsed.data.body },
   });
 
-  revalidatePath(`/matches/${matchId}`);
+  revalidatePath("/matches/[slug]", "page");
 }
 
-export async function deleteComment(commentId: string, matchId: string) {
+export async function deleteComment(commentId: string) {
   const user = await requireUser();
 
   await prisma.comment.deleteMany({
     where: user.role === "ADMIN" ? { id: commentId } : { id: commentId, userId: user.id },
   });
 
-  revalidatePath(`/matches/${matchId}`);
+  revalidatePath("/matches/[slug]", "page");
 }
