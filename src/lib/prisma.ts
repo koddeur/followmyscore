@@ -6,7 +6,15 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+  // Capped well below Supabase's pooler connection limit (15 in session
+  // mode) — several app instances/processes each holding their own default
+  // pool (10 connections) can exhaust it on their own. Idle connections are
+  // released quickly so they don't linger across deploys/restarts.
+  const adapter = new PrismaPg({
+    connectionString: process.env.DATABASE_URL,
+    max: 5,
+    idleTimeoutMillis: 10000,
+  });
   return new PrismaClient({ adapter });
 }
 

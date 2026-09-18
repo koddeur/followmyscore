@@ -11,6 +11,95 @@ interface NavUser {
   avatarUrl?: string | null;
 }
 
+const iconClass = "pointer-events-none h-4 w-4 shrink-0";
+
+function LoginIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={iconClass}
+      aria-hidden="true"
+    >
+      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+      <polyline points="10 17 15 12 10 7" />
+      <line x1="15" y1="12" x2="3" y2="12" />
+    </svg>
+  );
+}
+
+function AdminIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={iconClass}
+      aria-hidden="true"
+    >
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+    </svg>
+  );
+}
+
+function LogoutIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={iconClass}
+      aria-hidden="true"
+    >
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+  );
+}
+
+function UserIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={iconClass}
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="8" r="4" />
+      <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
+    </svg>
+  );
+}
+
+function ProfileAvatar({ avatarUrl }: { avatarUrl: string | null | undefined }) {
+  if (avatarUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={avatarUrl} alt="" className="h-4 w-4 shrink-0 rounded-full object-cover" />
+    );
+  }
+  return <UserIcon />;
+}
+
 export function NavLinks({
   user,
   variant = "desktop",
@@ -25,14 +114,13 @@ export function NavLinks({
 
   const isMobile = variant === "mobile";
   const linkClass = isMobile
-    ? "rounded-lg px-3 py-2 text-sm text-zinc-500 hover:bg-background hover:text-foreground"
+    ? "flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-500 hover:bg-background hover:text-foreground"
     : "text-zinc-500 hover:text-foreground";
-  const iconButtonClass =
-    "flex h-9 w-9 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-border text-zinc-500 hover:border-accent hover:text-foreground";
 
   if (!user) {
     const content = isMobile ? (
       <Link href={loginHref} onClick={onNavigate} className={linkClass}>
+        <LoginIcon />
         Connexion
       </Link>
     ) : (
@@ -49,19 +137,40 @@ export function NavLinks({
 
   const content = (
     <>
-      {user.role === "ADMIN" &&
-        (isMobile ? (
-          <Link href="/admin/users" onClick={onNavigate} className={linkClass}>
-            Administration
+      {isMobile && user.role === "ADMIN" && (
+        <Link href="/admin/users" onClick={onNavigate} className={linkClass}>
+          <AdminIcon />
+          Administration
+        </Link>
+      )}
+      {isMobile ? (
+        <>
+          <Link href={`/users/${user.username}`} onClick={onNavigate} className={linkClass}>
+            <ProfileAvatar avatarUrl={user.avatarUrl} />
+            {user.name}
           </Link>
-        ) : (
-          <Link
-            href="/admin/users"
-            onClick={onNavigate}
-            aria-label="Administration"
-            title="Administration"
-            className={iconButtonClass}
-          >
+          <form action={logout} onSubmit={onNavigate}>
+            <button className={`${linkClass} w-full text-left`} type="submit">
+              <LogoutIcon />
+              Déconnexion
+            </button>
+          </form>
+        </>
+      ) : (
+        <Link
+          href={`/users/${user.username}`}
+          onClick={onNavigate}
+          title={user.name ?? "Profil"}
+          className="flex h-9 shrink-0 touch-manipulation items-center gap-2 rounded-lg border border-border px-3 text-sm text-zinc-500 hover:border-accent hover:text-foreground"
+        >
+          {user.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={user.avatarUrl}
+              alt=""
+              className="h-5 w-5 shrink-0 rounded-full object-cover"
+            />
+          ) : (
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -70,77 +179,15 @@ export function NavLinks({
               strokeWidth={2}
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="pointer-events-none h-5 w-5"
+              className="pointer-events-none h-5 w-5 shrink-0"
               aria-hidden="true"
             >
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+              <circle cx="12" cy="8" r="4" />
+              <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
             </svg>
-          </Link>
-        ))}
-      {isMobile ? (
-        <>
-          <Link href={`/users/${user.username}`} onClick={onNavigate} className={linkClass}>
-            {user.name}
-          </Link>
-          <form action={logout} onSubmit={onNavigate}>
-            <button className={`${linkClass} w-full text-left`} type="submit">
-              Déconnexion
-            </button>
-          </form>
-        </>
-      ) : (
-        <>
-          <Link
-            href={`/users/${user.username}`}
-            onClick={onNavigate}
-            title={user.name ?? "Profil"}
-            className="flex h-9 shrink-0 touch-manipulation items-center gap-2 rounded-lg border border-border px-3 text-sm text-zinc-500 hover:border-accent hover:text-foreground"
-          >
-            {user.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={user.avatarUrl}
-                alt=""
-                className="h-5 w-5 shrink-0 rounded-full object-cover"
-              />
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="pointer-events-none h-5 w-5 shrink-0"
-                aria-hidden="true"
-              >
-                <circle cx="12" cy="8" r="4" />
-                <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
-              </svg>
-            )}
-            {user.name}
-          </Link>
-          <form action={logout} onSubmit={onNavigate}>
-            <button type="submit" aria-label="Déconnexion" title="Déconnexion" className={iconButtonClass}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="pointer-events-none h-5 w-5"
-                aria-hidden="true"
-              >
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-            </button>
-          </form>
-        </>
+          )}
+          {user.name}
+        </Link>
       )}
     </>
   );

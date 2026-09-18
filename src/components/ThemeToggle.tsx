@@ -78,6 +78,7 @@ function ThemeIcon({ theme }: { theme: Theme }) {
 
 export function ThemeToggle({ variant = "icon" }: { variant?: "icon" | "row" }) {
   const theme = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const shortLabel = theme === "dark" ? "Mode clair" : "Mode sombre";
   const label = theme === "dark" ? "Passer en mode clair" : "Passer en mode sombre";
 
   function toggle() {
@@ -89,10 +90,10 @@ export function ThemeToggle({ variant = "icon" }: { variant?: "icon" | "row" }) 
       <button
         type="button"
         onClick={toggle}
-        className="flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-zinc-500 hover:bg-background hover:text-foreground"
+        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-zinc-500 hover:bg-background hover:text-foreground"
       >
         <ThemeIcon theme={theme} />
-        {label}
+        {shortLabel}
       </button>
     );
   }
@@ -102,7 +103,7 @@ export function ThemeToggle({ variant = "icon" }: { variant?: "icon" | "row" }) 
       type="button"
       onClick={toggle}
       aria-label={label}
-      title={theme === "dark" ? "Mode clair" : "Mode sombre"}
+      title={shortLabel}
       className="flex h-9 w-9 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-border text-zinc-500 hover:border-accent hover:text-foreground"
     >
       <ThemeIcon theme={theme} />

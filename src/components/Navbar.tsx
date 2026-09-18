@@ -3,7 +3,7 @@ import Link from "next/link";
 import { NavLinks } from "@/components/NavLinks";
 import { NavSearch } from "@/components/NavSearch";
 import { MobileNavTriggers } from "@/components/MobileNavTriggers";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { AccountMenu } from "@/components/AccountMenu";
 
 interface NavUser {
   name?: string | null;
@@ -19,7 +19,7 @@ export function Navbar({ user }: { user: NavUser | null }) {
           ancestor is known to break tap/click hit-testing for its children on iOS
           Safari, even though it renders fine visually everywhere. */}
       <div className="absolute inset-0 -z-10 bg-card/80 backdrop-blur" aria-hidden="true" />
-      <div className="relative mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-2 px-4 py-3 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:gap-3 sm:px-6">
+      <div className="relative mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-2 px-4 py-3 sm:grid sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-3 sm:px-6">
         <Link
           href="/"
           className="flex min-w-0 shrink-0 items-center gap-2 justify-self-start font-semibold tracking-tight"
@@ -29,14 +29,15 @@ export function Navbar({ user }: { user: NavUser | null }) {
             alt="FollowMyScore"
             width={44}
             height={44}
-            className="h-9 w-9 shrink-0 rounded-lg object-cover sm:h-11 sm:w-11"
+            className="h-7 w-7 shrink-0 object-cover sm:h-9 sm:w-9"
             priority
+            unoptimized
           />
           <span className="truncate text-base sm:text-lg">FollowMyScore</span>
         </Link>
 
         <div className="hidden justify-self-center sm:flex">
-          <div className="w-full max-w-xl">
+          <div className="w-full max-w-2xl">
             <NavSearch />
           </div>
         </div>
@@ -52,9 +53,7 @@ export function Navbar({ user }: { user: NavUser | null }) {
             <NavLinks user={user} />
           </nav>
 
-          <div className="hidden sm:block">
-            <ThemeToggle />
-          </div>
+          <AccountMenu isAdmin={user?.role === "ADMIN"} isLoggedIn={Boolean(user)} />
           <MobileNavTriggers />
         </div>
       </div>

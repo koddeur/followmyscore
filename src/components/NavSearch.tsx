@@ -11,7 +11,7 @@ type SearchResults = Awaited<ReturnType<typeof searchAll>>;
 
 const EMPTY_RESULTS: SearchResults = { clubs: [], matches: [], users: [] };
 
-export function NavSearch() {
+export function NavSearch({ size = "sm" }: { size?: "sm" | "lg" }) {
   const router = useRouter();
   const [value, setValue] = useState("");
   const [results, setResults] = useState<SearchResults>(EMPTY_RESULTS);
@@ -93,7 +93,9 @@ export function NavSearch() {
           strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+          className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-zinc-400 ${
+            size === "lg" ? "left-3.5 h-5 w-5" : "left-2.5 h-4 w-4"
+          }`}
           aria-hidden="true"
         >
           <circle cx="11" cy="11" r="8" />
@@ -108,7 +110,9 @@ export function NavSearch() {
           }}
           placeholder="Rechercher un club, un match, un utilisateur…"
           aria-label="Rechercher un club, un match ou un utilisateur"
-          className="w-full rounded-lg border border-border bg-background py-1.5 pl-8 pr-3 text-sm outline-none focus:border-accent"
+          className={`w-full rounded-lg border border-border bg-background pr-3 outline-none focus:border-accent ${
+            size === "lg" ? "py-3.5 pl-11 text-base" : "py-1.5 pl-8 text-sm"
+          }`}
         />
       </form>
 
