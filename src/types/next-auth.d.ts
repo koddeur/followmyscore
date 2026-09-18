@@ -12,6 +12,7 @@ declare module "next-auth" {
       id: string;
       role: Role;
       username: string;
+      isEmailVerified: boolean;
     } & DefaultSession["user"];
   }
 }
@@ -21,5 +22,6 @@ declare module "@auth/core/jwt" {
     id: string;
     role: Role;
     username: string;
+    isEmailVerified: boolean;
   }
 }

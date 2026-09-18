@@ -1,12 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 const STORAGE_KEY = "cookie-notice-dismissed";
+const listeners = new Set<() => void>();
 
-function readDismissed(): boolean {
-  if (typeof window === "undefined") return true;
+function subscribe(callback: () => void) {
+  listeners.add(callback);
+  return () => listeners.delete(callback);
+}
+
+function getSnapshot(): boolean {
   try {
     return localStorage.getItem(STORAGE_KEY) !== null;
   } catch {
@@ -16,26 +21,24 @@ function readDismissed(): boolean {
   }
 }
 
-export function CookieBanner() {
-  // Starts "dismissed" to match the server-rendered (empty) output; the ref
-  // guard lets us read localStorage exactly once, during the client's first
-  // render, before anything commits — see MobileNav/ContactForm for the same
-  // pattern used elsewhere in this app.
-  const [dismissed, setDismissed] = useState(true);
-  const initRef = useRef<boolean | null>(null);
+// The server can't read localStorage, so it always renders "dismissed" (no
+// banner). useSyncExternalStore uses this for the first client render too
+// (matching hydration), then immediately re-checks getSnapshot and re-renders
+// if a returning visitor already dismissed it — no hydration mismatch either way.
+function getServerSnapshot(): boolean {
+  return true;
+}
 
-  if (initRef.current == null) {
-    initRef.current = true;
-    if (!readDismissed()) setDismissed(false);
-  }
+export function CookieBanner() {
+  const dismissed = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   function dismiss() {
-    setDismissed(true);
     try {
       localStorage.setItem(STORAGE_KEY, "1");
     } catch {
       // Nothing else to do if storage isn't available.
     }
+    listeners.forEach((listener) => listener());
   }
 
   if (dismissed) return null;

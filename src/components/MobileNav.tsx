@@ -66,7 +66,7 @@ export function MobileNav({ user }: { user: NavUser | null }) {
       </button>
 
       {open && (
-        <div className="w-full border-t border-border pt-3 sm:hidden">
+        <div className="w-full border-t border-border pt-3 pb-3 sm:hidden">
           <NavSearch />
           <div className="mt-3">
             <NavLinks user={user} variant="mobile" onNavigate={() => setOpen(false)} />

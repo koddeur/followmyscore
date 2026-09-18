@@ -12,9 +12,9 @@ export interface ClubSearchResult {
 const SIMILARITY_THRESHOLD = 0.25;
 
 /**
- * Matches on name, shortName and city (all with typo-tolerant pg_trgm
- * similarity() beyond plain contains-matches, since a search can hit any of
- * the three — e.g. an alternate short name or the club's town).
+ * Matches on name, shortName, city, postalCode and district (all with
+ * typo-tolerant pg_trgm similarity() beyond plain contains-matches, since a
+ * search can hit any of these — e.g. a town, a postal code or a district name).
  */
 export async function searchClubs(
   query: string,
@@ -31,15 +31,20 @@ export async function searchClubs(
     WHERE "name" ILIKE ${like}
        OR "shortName" ILIKE ${like}
        OR "city" ILIKE ${like}
+       OR "postalCode" ILIKE ${like}
+       OR "districtName" ILIKE ${like}
+       OR "districtShortName" ILIKE ${like}
        OR similarity("name", ${trimmed}) > ${SIMILARITY_THRESHOLD}
        OR similarity(COALESCE("shortName", ''), ${trimmed}) > ${SIMILARITY_THRESHOLD}
        OR similarity(COALESCE("city", ''), ${trimmed}) > ${SIMILARITY_THRESHOLD}
+       OR similarity(COALESCE("districtName", ''), ${trimmed}) > ${SIMILARITY_THRESHOLD}
     ORDER BY
       ("name" ILIKE ${like}) DESC,
       GREATEST(
         similarity("name", ${trimmed}),
         similarity(COALESCE("shortName", ''), ${trimmed}),
-        similarity(COALESCE("city", ''), ${trimmed})
+        similarity(COALESCE("city", ''), ${trimmed}),
+        similarity(COALESCE("districtName", ''), ${trimmed})
       ) DESC,
       "name" ASC
     LIMIT ${limit}
@@ -58,9 +63,13 @@ export async function countClubSearch(query: string): Promise<number> {
     WHERE "name" ILIKE ${like}
        OR "shortName" ILIKE ${like}
        OR "city" ILIKE ${like}
+       OR "postalCode" ILIKE ${like}
+       OR "districtName" ILIKE ${like}
+       OR "districtShortName" ILIKE ${like}
        OR similarity("name", ${trimmed}) > ${SIMILARITY_THRESHOLD}
        OR similarity(COALESCE("shortName", ''), ${trimmed}) > ${SIMILARITY_THRESHOLD}
        OR similarity(COALESCE("city", ''), ${trimmed}) > ${SIMILARITY_THRESHOLD}
+       OR similarity(COALESCE("districtName", ''), ${trimmed}) > ${SIMILARITY_THRESHOLD}
   `;
   return rows[0]?.count ?? 0;
 }

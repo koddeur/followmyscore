@@ -2,16 +2,34 @@
 
 import { useActionState } from "react";
 import { updateEmail } from "@/app/actions/account";
+import { ResendVerificationButton } from "@/components/ResendVerificationButton";
 
-export function UpdateEmailForm({ email, hasPassword }: { email: string; hasPassword: boolean }) {
+export function UpdateEmailForm({
+  email,
+  hasPassword,
+  emailVerified,
+}: {
+  email: string;
+  hasPassword: boolean;
+  emailVerified: boolean;
+}) {
   const [state, action, pending] = useActionState(updateEmail, undefined);
 
   return (
     <form action={action} className="space-y-4">
       <div>
-        <label htmlFor="email" className="mb-1 block text-sm font-medium">
-          Email
-        </label>
+        <div className="mb-1 flex items-center justify-between">
+          <label htmlFor="email" className="block text-sm font-medium">
+            Email
+          </label>
+          {emailVerified ? (
+            <span className="text-xs font-medium text-emerald-600">Vérifié</span>
+          ) : (
+            <span className="text-xs text-zinc-500">
+              Non vérifié · <ResendVerificationButton />
+            </span>
+          )}
+        </div>
         <input
           id="email"
           name="email"

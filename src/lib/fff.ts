@@ -157,6 +157,86 @@ export async function getFffClubDetail(fffId: string): Promise<FffClubDetail | n
   return mapFffClubDetail(raw);
 }
 
+// -- Club (bulk list, for the admin-triggered full sync) -----------------
+
+interface FffRawClubListItem {
+  cl_no: number;
+  name: string;
+  short_name: string | null;
+  location: string | null;
+  postal_code: string | null;
+  district: { name: string; short_name: string } | null;
+  latitude: number | null;
+  longitude: number | null;
+  logo: string | null;
+}
+
+export interface FffClubListItem {
+  fffId: string;
+  name: string;
+  shortName: string | null;
+  location: string | null;
+  postalCode: string | null;
+  districtName: string | null;
+  districtShortName: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  logoUrl: string | null;
+}
+
+function mapFffClubListItem(raw: FffRawClubListItem): FffClubListItem {
+  return {
+    fffId: String(raw.cl_no),
+    name: raw.name,
+    shortName: raw.short_name,
+    location: raw.location,
+    postalCode: raw.postal_code,
+    districtName: raw.district?.name ?? null,
+    districtShortName: raw.district?.short_name ?? null,
+    latitude: raw.latitude,
+    longitude: raw.longitude,
+    logoUrl: raw.logo,
+  };
+}
+
+const CLUBS_LIST_PAGE_TIMEOUT_MS = 15000;
+const CLUBS_LIST_MAX_RETRIES = 4;
+
+/**
+ * One page (30 items) of the full FFF club directory, used for the
+ * admin-triggered bulk sync. Distinct from `fffFetch` because this endpoint
+ * takes `filter=test&page=` rather than a bare `filter=` — empirically the
+ * only combination that returns results for this listing endpoint.
+ * Returns `null` after exhausting retries (network/HTTP failure), and `[]`
+ * once `page` is past the last one.
+ */
+export async function getFffClubsPage(page: number): Promise<FffClubListItem[] | null> {
+  if (!ENABLED) return null;
+
+  const url = `${BASE_URL}/api/clubs.json?filter=test&page=${page}`;
+
+  for (let attempt = 1; attempt <= CLUBS_LIST_MAX_RETRIES; attempt++) {
+    try {
+      const res = await fetch(url, {
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(CLUBS_LIST_PAGE_TIMEOUT_MS),
+      });
+      if (res.ok) {
+        const raw = (await res.json()) as FffRawClubListItem[];
+        return raw.filter((c) => c.cl_no && c.name).map(mapFffClubListItem);
+      }
+      console.warn(`[fff] clubs.json page ${page} failed with status ${res.status} (attempt ${attempt}/${CLUBS_LIST_MAX_RETRIES})`);
+    } catch (error) {
+      console.warn(
+        `[fff] clubs.json page ${page} request failed (attempt ${attempt}/${CLUBS_LIST_MAX_RETRIES})`,
+        error instanceof Error ? error.message : error
+      );
+    }
+    await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+  }
+  return null;
+}
+
 export function getFffClub(clubId: string) {
   return fffFetch(`/api/clubs/${clubId}`);
 }

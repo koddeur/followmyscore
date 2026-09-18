@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Navbar } from "@/components/Navbar";
 import { SocialLinks } from "@/components/SocialLinks";
 import { CookieBanner } from "@/components/CookieBanner";
+import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,9 +29,20 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="fr"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <Navbar />
+        <EmailVerificationBanner />
         <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">
           {children}
         </main>

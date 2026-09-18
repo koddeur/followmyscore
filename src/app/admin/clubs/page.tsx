@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { ClubLogo } from "@/components/ClubLogo";
 import { AdminClubSearch } from "@/components/AdminClubSearch";
 import { DeleteClubRowButton } from "@/components/DeleteClubRowButton";
+import { FffClubSyncButton } from "@/components/FffClubSyncButton";
 
 const PAGE_SIZE = 25;
 
@@ -20,6 +21,8 @@ export default async function AdminClubsPage({ searchParams }: PageProps<"/admin
           { name: { contains: query, mode: "insensitive" as const } },
           { shortName: { contains: query, mode: "insensitive" as const } },
           { city: { contains: query, mode: "insensitive" as const } },
+          { postalCode: { contains: query, mode: "insensitive" as const } },
+          { districtName: { contains: query, mode: "insensitive" as const } },
           { fffId: { contains: query, mode: "insensitive" as const } },
         ],
       }
@@ -48,10 +51,15 @@ export default async function AdminClubsPage({ searchParams }: PageProps<"/admin
 
   return (
     <div>
-      <h1 className="mb-1 text-2xl font-semibold tracking-tight">Clubs</h1>
-      <p className="mb-6 text-sm text-zinc-500">
-        Gère tous les clubs du site ({total} club{total > 1 ? "s" : ""}).
-      </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="mb-1 text-2xl font-semibold tracking-tight">Clubs</h1>
+          <p className="text-sm text-zinc-500">
+            Gère tous les clubs du site ({total} club{total > 1 ? "s" : ""}).
+          </p>
+        </div>
+        <FffClubSyncButton />
+      </div>
 
       <div className="mb-4">
         <AdminClubSearch defaultValue={query} />

@@ -68,7 +68,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (!email) return false;
 
       const existing = await prisma.user.findUnique({ where: { email } });
-      if (existing) return true;
+      if (existing) {
+        // The OAuth provider already vouches for this email — treat that as
+        // proof of ownership even if the account was created (and never
+        // verified) via the credentials flow.
+        if (!existing.emailVerified) {
+          await prisma.user.update({ where: { id: existing.id }, data: { emailVerified: new Date() } });
+        }
+        return true;
+      }
 
       const username = await uniqueUsernameFrom(email.split("@")[0] ?? "user");
       await prisma.user.create({
@@ -78,6 +86,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email,
           avatarUrl: user.image ?? null,
           role: "USER",
+          emailVerified: new Date(),
         },
       });
       return true;
@@ -109,6 +118,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.role = dbUser.role;
         token.username = dbUser.username;
         token.name = dbUser.name;
+        token.isEmailVerified = dbUser.emailVerified !== null;
       }
       return token;
     },
@@ -118,6 +128,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.role = token.role;
         session.user.username = token.username;
         session.user.name = token.name ?? session.user.name;
+        session.user.isEmailVerified = token.isEmailVerified ?? false;
       }
       return session;
     },

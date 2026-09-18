@@ -11,6 +11,8 @@ import {
   updatePasswordSchema,
   avatarSchema,
 } from "@/lib/validation";
+import { sendVerificationEmail } from "@/lib/emailVerification";
+import { getOrigin } from "@/lib/origin";
 
 export type AccountFormState =
   | {
@@ -86,10 +88,21 @@ export async function updateEmail(
     return { error: "Un compte existe déjà avec cet email." };
   }
 
-  await prisma.user.update({ where: { id: user.id }, data: { email } });
+  const updated = await prisma.user.update({
+    where: { id: user.id },
+    data: { email, emailVerified: null },
+  });
+
+  const origin = await getOrigin();
+  await sendVerificationEmail(updated, origin).catch((error) => {
+    console.error("[updateEmail] failed to send verification email", error);
+  });
 
   revalidatePath("/account");
-  return { success: "Email mis à jour. Reconnecte-toi pour que ça se reflète partout." };
+  return {
+    success:
+      "Email mis à jour — un lien de vérification vient de t'être envoyé. Reconnecte-toi pour que ça se reflète partout.",
+  };
 }
 
 export async function updatePassword(

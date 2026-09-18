@@ -36,7 +36,11 @@ export default async function AccountPage() {
       <section>
         <h2 className="mb-3 text-lg font-semibold">Email</h2>
         <div className="rounded-2xl border border-border bg-card p-6">
-          <UpdateEmailForm email={user.email} hasPassword={hasPassword} />
+          <UpdateEmailForm
+            email={user.email}
+            hasPassword={hasPassword}
+            emailVerified={user.emailVerified !== null}
+          />
         </div>
       </section>
 

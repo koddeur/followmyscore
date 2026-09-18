@@ -5,6 +5,8 @@ import { AuthError } from "next-auth";
 import { signIn, signOut } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { registerSchema, usernameSchema } from "@/lib/validation";
+import { sendVerificationEmail } from "@/lib/emailVerification";
+import { getOrigin } from "@/lib/origin";
 
 export type AuthFormState =
   | {
@@ -75,8 +77,13 @@ export async function registerUser(
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
-  await prisma.user.create({
+  const user = await prisma.user.create({
     data: { name, username, email, passwordHash, role: "USER" },
+  });
+
+  const origin = await getOrigin();
+  await sendVerificationEmail(user, origin).catch((error) => {
+    console.error("[register] failed to send verification email", error);
   });
 
   try {
