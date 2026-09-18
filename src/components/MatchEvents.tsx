@@ -10,6 +10,7 @@ import { GoalEventForm } from "@/components/GoalEventForm";
 import { CardEventForm } from "@/components/CardEventForm";
 import { SubstitutionEventForm } from "@/components/SubstitutionEventForm";
 import { GoalIcon, CardIcon, SubstitutionIcon } from "@/components/MatchEventIcons";
+import { Modal } from "@/components/Modal";
 
 type EventKind = "start" | "end" | "goal" | "yellow" | "red" | "substitution";
 
@@ -52,11 +53,7 @@ function TimeForm({
   onDone: () => void;
 }) {
   return (
-    <form
-      action={action}
-      onSubmit={onDone}
-      className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background p-3"
-    >
+    <form action={action} onSubmit={onDone} className="flex flex-wrap items-center gap-2">
       <label className="text-sm font-medium">{label}</label>
       <input
         type="datetime-local"
@@ -99,70 +96,71 @@ export function MatchEvents({
 
   return (
     <div>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         {!started && (
-          <button type="button" onClick={() => setOpen("start")} className={tileClass("start", open === "start")}>
-            <span className="text-lg">▶️</span>
-            Démarrer le match
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={() => setOpen("start")} className={tileClass("start", open === "start")}>
+              <span className="text-lg">▶️</span>
+              Démarrer le match
+            </button>
+          </div>
         )}
         {started && !ended && (
           <>
-            <form action={updateStatus.bind(null, matchId)}>
-              <input type="hidden" name="status" value={isHalftime ? "LIVE" : "HALFTIME"} />
-              <button type="submit" className={tileClass("halftime", false)}>
-                <span className="text-lg">{isHalftime ? "▶️" : "⏸️"}</span>
-                {isHalftime ? "Reprise 2ème période" : "Mi-temps"}
+            <div className="flex flex-wrap gap-2">
+              <form action={updateStatus.bind(null, matchId)}>
+                <input type="hidden" name="status" value={isHalftime ? "LIVE" : "HALFTIME"} />
+                <button type="submit" className={tileClass("halftime", false)}>
+                  <span className="text-lg">{isHalftime ? "▶️" : "⏸️"}</span>
+                  {isHalftime ? "Reprise 2ème période" : "Mi-temps"}
+                </button>
+              </form>
+              <button type="button" onClick={() => setOpen("end")} className={tileClass("end", open === "end")}>
+                <span className="text-lg">⏹️</span>
+                Terminer le match
               </button>
-            </form>
-            <button type="button" onClick={() => setOpen("end")} className={tileClass("end", open === "end")}>
-              <span className="text-lg">⏹️</span>
-              Terminer le match
-            </button>
-            <button type="button" onClick={() => setOpen("goal")} className={tileClass("goal", open === "goal")}>
-              <GoalIcon className="h-5 w-5 text-accent" />
-              But
-            </button>
-            <button type="button" onClick={() => setOpen("yellow")} className={tileClass("yellow", open === "yellow")}>
-              <CardIcon type="YELLOW" className="h-4 w-4" />
-              Carton jaune
-            </button>
-            <button type="button" onClick={() => setOpen("red")} className={tileClass("red", open === "red")}>
-              <CardIcon type="RED" className="h-4 w-4" />
-              Carton rouge
-            </button>
-            <button
-              type="button"
-              onClick={() => setOpen("substitution")}
-              className={tileClass("substitution", open === "substitution")}
-            >
-              <SubstitutionIcon className="h-5 w-5" />
-              Changement
-            </button>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => setOpen("goal")} className={tileClass("goal", open === "goal")}>
+                <GoalIcon className="h-5 w-5 text-accent" />
+                But
+              </button>
+              <button
+                type="button"
+                onClick={() => setOpen("yellow")}
+                className={tileClass("yellow", open === "yellow")}
+              >
+                <CardIcon type="YELLOW" className="h-4 w-4" />
+                Carton jaune
+              </button>
+              <button type="button" onClick={() => setOpen("red")} className={tileClass("red", open === "red")}>
+                <CardIcon type="RED" className="h-4 w-4" />
+                Carton rouge
+              </button>
+              <button
+                type="button"
+                onClick={() => setOpen("substitution")}
+                className={tileClass("substitution", open === "substitution")}
+              >
+                <SubstitutionIcon className="h-5 w-5" />
+                Changement
+              </button>
+            </div>
           </>
         )}
         {ended && <p className="text-sm text-zinc-500">Match terminé.</p>}
       </div>
 
-      {open === "start" && (
-        <TimeForm
-          label="Heure de début"
-          fieldName="startedAt"
-          action={startMatch.bind(null, matchId)}
-          onDone={close}
-        />
-      )}
+      <Modal open={open === "start"} onClose={close} title="Heure de début">
+        <TimeForm label="Heure de début" fieldName="startedAt" action={startMatch.bind(null, matchId)} onDone={close} />
+      </Modal>
 
-      {open === "end" && (
-        <TimeForm
-          label="Heure de fin"
-          fieldName="endedAt"
-          action={endMatch.bind(null, matchId)}
-          onDone={close}
-        />
-      )}
+      <Modal open={open === "end"} onClose={close} title="Heure de fin">
+        <TimeForm label="Heure de fin" fieldName="endedAt" action={endMatch.bind(null, matchId)} onDone={close} />
+      </Modal>
 
-      {open === "goal" && (
+      <Modal open={open === "goal"} onClose={close} title="Ajouter un but">
         <GoalEventForm
           matchId={matchId}
           homeClub={homeClub}
@@ -173,9 +171,13 @@ export function MatchEvents({
           action={addGoal.bind(null, matchId)}
           onDone={close}
         />
-      )}
+      </Modal>
 
-      {(open === "yellow" || open === "red") && (
+      <Modal
+        open={open === "yellow" || open === "red"}
+        onClose={close}
+        title={open === "yellow" ? "Ajouter un carton jaune" : "Ajouter un carton rouge"}
+      >
         <CardEventForm
           matchId={matchId}
           cardType={open === "yellow" ? "YELLOW" : "RED"}
@@ -187,9 +189,9 @@ export function MatchEvents({
           action={addCard.bind(null, matchId, open === "yellow" ? "YELLOW" : "RED")}
           onDone={close}
         />
-      )}
+      </Modal>
 
-      {open === "substitution" && (
+      <Modal open={open === "substitution"} onClose={close} title="Ajouter un changement">
         <SubstitutionEventForm
           matchId={matchId}
           homeClub={homeClub}
@@ -200,7 +202,7 @@ export function MatchEvents({
           action={addSubstitution.bind(null, matchId)}
           onDone={close}
         />
-      )}
+      </Modal>
     </div>
   );
 }

@@ -14,7 +14,7 @@ export function FollowMatchButton({
           type="submit"
           className="rounded-lg border border-border px-3 py-1.5 text-sm text-zinc-500 hover:border-red-400 hover:text-red-600"
         >
-          Se retirer
+          Ne plus éditer ce match
         </button>
       </form>
     );

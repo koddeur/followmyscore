@@ -92,11 +92,7 @@ export function SubstitutionEventForm({
         onConfirm={confirmDuplicate}
         onCancel={cancelDuplicate}
       />
-      <form
-        action={action}
-        onSubmit={handleSubmit}
-        className="mt-3 space-y-3 rounded-lg border border-border bg-background p-3"
-      >
+      <form action={action} onSubmit={handleSubmit} className="space-y-3">
         <div className="flex items-center gap-2">
           <label className="text-sm font-medium">Club</label>
           <select

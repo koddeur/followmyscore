@@ -21,6 +21,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ??
+      (process.env.NODE_ENV === "production" ? "https://followmyscore.fr" : "http://localhost:3000")
+  ),
   title: "FollowMyScore — Matchs amateurs en direct",
   description:
     "Suivez et mettez à jour en direct les résultats de matchs de football amateur.",

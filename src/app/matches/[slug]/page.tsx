@@ -327,24 +327,26 @@ export default async function MatchPage({ params }: PageProps<"/matches/[slug]">
           )}
 
           {user && isFollowing && (
-            <div className="mt-4 space-y-4">
-              <div className="flex justify-end">
+            <>
+              <div className="mt-3">
                 <FollowMatchButton matchId={match.id} isFollowing />
               </div>
-              <MatchEvents
-                matchId={match.id}
-                homeClub={match.homeClub}
-                awayClub={match.awayClub}
-                homeLineupEntries={homeLineupEntries}
-                awayLineupEntries={awayLineupEntries}
-                started={started}
-                ended={ended}
-                isHalftime={isHalftime}
-              />
-              <div className="flex justify-center">
-                <StatusControls key={match.status} matchId={match.id} status={match.status} />
+              <div className="mt-4 space-y-4">
+                <MatchEvents
+                  matchId={match.id}
+                  homeClub={match.homeClub}
+                  awayClub={match.awayClub}
+                  homeLineupEntries={homeLineupEntries}
+                  awayLineupEntries={awayLineupEntries}
+                  started={started}
+                  ended={ended}
+                  isHalftime={isHalftime}
+                />
+                <div className="flex justify-center">
+                  <StatusControls key={match.status} matchId={match.id} status={match.status} />
+                </div>
               </div>
-            </div>
+            </>
           )}
         </div>
       </section>
