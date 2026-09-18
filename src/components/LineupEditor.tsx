@@ -75,24 +75,24 @@ export function LineupEditor({
 
       <div className="space-y-1.5">
         {rows.map((row, index) => (
-          <div key={index} className="flex items-center gap-1.5">
+          <div key={index} className="flex flex-wrap items-center gap-1.5">
             <input
               value={row.number}
               onChange={(e) => updateRow(index, { number: e.target.value })}
               placeholder="N°"
               type="number"
-              className="w-14 rounded-lg border border-border bg-background px-2 py-1 text-sm"
+              className="w-14 shrink-0 rounded-lg border border-border bg-background px-2 py-1 text-sm"
             />
             <input
               value={row.playerName}
               onChange={(e) => updateRow(index, { playerName: e.target.value })}
               placeholder="Nom du joueur"
-              className="flex-1 rounded-lg border border-border bg-background px-2 py-1 text-sm"
+              className="min-w-0 flex-1 rounded-lg border border-border bg-background px-2 py-1 text-sm"
             />
             <select
               value={row.position}
               onChange={(e) => updateRow(index, { position: e.target.value })}
-              className="w-28 rounded-lg border border-border bg-background px-2 py-1 text-sm"
+              className="w-28 shrink-0 rounded-lg border border-border bg-background px-2 py-1 text-sm"
             >
               <option value="Gardien">Gardien</option>
               <option value="Défenseur">Défenseur</option>
@@ -103,7 +103,7 @@ export function LineupEditor({
             <button
               type="button"
               onClick={() => removeRow(index)}
-              className="text-zinc-400 hover:text-red-600"
+              className="shrink-0 text-zinc-400 hover:text-red-600"
               aria-label="Retirer"
             >
               ✕

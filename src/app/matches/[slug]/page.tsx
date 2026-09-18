@@ -22,6 +22,7 @@ import { ShareButtons } from "@/components/ShareButtons";
 import { ClubLogo } from "@/components/ClubLogo";
 import { MatchViewTracker } from "@/components/MatchViewTracker";
 import { MatchHeaderEvents, type MatchHeaderEventItem } from "@/components/MatchHeaderEvents";
+import { RecentEventHighlight } from "@/components/RecentEventHighlight";
 import type { Metadata } from "next";
 
 export async function generateMetadata({ params }: PageProps<"/matches/[slug]">): Promise<Metadata> {
@@ -120,6 +121,7 @@ export default async function MatchPage({ params }: PageProps<"/matches/[slug]">
         playerNumber: g.scorerNumber,
         ownGoal: g.ownGoal,
         penalty: g.penalty,
+        createdAt: g.createdAt,
       }));
     const cardItems: MatchHeaderEventItem[] = match!.cards
       .filter((c) => c.club.id === clubId)
@@ -128,6 +130,7 @@ export default async function MatchPage({ params }: PageProps<"/matches/[slug]">
         minute: c.minute,
         playerName: c.playerName,
         playerNumber: c.number,
+        createdAt: c.createdAt,
       }));
     const substitutionItems: MatchHeaderEventItem[] = match!.substitutions
       .filter((s) => s.club.id === clubId)
@@ -136,6 +139,7 @@ export default async function MatchPage({ params }: PageProps<"/matches/[slug]">
         minute: s.minute,
         playerName: s.playerInName,
         playerNumber: s.playerInNumber,
+        createdAt: s.createdAt,
       }));
     return [...goalItems, ...cardItems, ...substitutionItems];
   }
@@ -143,9 +147,18 @@ export default async function MatchPage({ params }: PageProps<"/matches/[slug]">
   const homeEvents = clubEvents(match.homeClubId);
   const awayEvents = clubEvents(match.awayClubId);
 
+  function lastGoalAt(clubId: string): Date {
+    const clubGoals = match!.goals.filter((g) => g.club.id === clubId);
+    if (clubGoals.length === 0) return new Date(0);
+    return clubGoals.reduce((latest, g) => (g.createdAt > latest ? g.createdAt : latest), clubGoals[0].createdAt);
+  }
+
+  const lastHomeGoalAt = lastGoalAt(match.homeClubId);
+  const lastAwayGoalAt = lastGoalAt(match.awayClubId);
+
   return (
     <div className="space-y-8">
-      <LiveRefresher active={match.status === "LIVE" || match.status === "HALFTIME"} />
+      <LiveRefresher status={match.status} />
       <MatchViewTracker matchId={match.id} />
 
       <section className="rounded-2xl border border-border bg-card p-6">
@@ -208,8 +221,24 @@ export default async function MatchPage({ params }: PageProps<"/matches/[slug]">
               <ClubLogo logoUrl={match.homeClub.logoUrl} name={match.homeClub.name} className="h-7 w-7 sm:h-12 sm:w-12" />
             </Link>
           </div>
-          <span className="shrink-0 rounded-xl bg-background px-2.5 py-1.5 font-mono text-xl font-bold tabular-nums sm:px-4 sm:py-2 sm:text-3xl">
-            {match.homeScore} – {match.awayScore}
+          <span className="flex shrink-0 items-center gap-1 rounded-xl bg-background px-2.5 py-1.5 font-mono text-xl font-bold tabular-nums sm:px-4 sm:py-2 sm:text-3xl">
+            <RecentEventHighlight
+              createdAt={lastHomeGoalAt}
+              className="rounded-md px-1"
+              highlightClassName="bg-accent/20 text-accent"
+              idleClassName=""
+            >
+              {match.homeScore}
+            </RecentEventHighlight>
+            <span>–</span>
+            <RecentEventHighlight
+              createdAt={lastAwayGoalAt}
+              className="rounded-md px-1"
+              highlightClassName="bg-accent/20 text-accent"
+              idleClassName=""
+            >
+              {match.awayScore}
+            </RecentEventHighlight>
           </span>
           <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden sm:gap-3">
             <Link href={`/clubs/${match.awayClub.fffId ?? match.awayClub.id}`} className="shrink-0">
@@ -220,7 +249,7 @@ export default async function MatchPage({ params }: PageProps<"/matches/[slug]">
         </div>
 
         {(homeEvents.length > 0 || awayEvents.length > 0) && (
-          <div className="mt-3 flex items-start justify-between gap-8 sm:gap-12">
+          <div className="mt-3 flex items-start justify-between gap-6 sm:gap-8">
             <div className="min-w-0 flex-1">
               <MatchHeaderEvents items={homeEvents} align="right" />
             </div>

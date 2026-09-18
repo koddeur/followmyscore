@@ -9,6 +9,7 @@ import { buttonClass, primaryButtonClass, inputClass, type ClubInfo, type Lineup
 import { GoalEventForm } from "@/components/GoalEventForm";
 import { CardEventForm } from "@/components/CardEventForm";
 import { SubstitutionEventForm } from "@/components/SubstitutionEventForm";
+import { GoalIcon, CardIcon, SubstitutionIcon } from "@/components/MatchEventIcons";
 
 type EventKind = "start" | "end" | "goal" | "yellow" | "red" | "substitution";
 
@@ -119,15 +120,15 @@ export function MatchEvents({
               Terminer le match
             </button>
             <button type="button" onClick={() => setOpen("goal")} className={tileClass("goal", open === "goal")}>
-              <span className="text-lg">⚽</span>
+              <GoalIcon className="h-5 w-5 text-accent" />
               But
             </button>
             <button type="button" onClick={() => setOpen("yellow")} className={tileClass("yellow", open === "yellow")}>
-              <span className="text-lg">🟨</span>
+              <CardIcon type="YELLOW" className="h-4 w-4" />
               Carton jaune
             </button>
             <button type="button" onClick={() => setOpen("red")} className={tileClass("red", open === "red")}>
-              <span className="text-lg">🟥</span>
+              <CardIcon type="RED" className="h-4 w-4" />
               Carton rouge
             </button>
             <button
@@ -135,7 +136,7 @@ export function MatchEvents({
               onClick={() => setOpen("substitution")}
               className={tileClass("substitution", open === "substitution")}
             >
-              <span className="text-lg">🔄</span>
+              <SubstitutionIcon className="h-5 w-5" />
               Changement
             </button>
           </>

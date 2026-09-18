@@ -1,4 +1,5 @@
 import { CardItem } from "@/components/CardItem";
+import { sortByMinuteThenCreatedAt } from "@/lib/eventSort";
 import type { ClubInfo, LineupEntryInfo } from "@/components/PlayerFields";
 
 export interface CardData {
@@ -7,6 +8,7 @@ export interface CardData {
   number: number | null;
   type: "YELLOW" | "RED";
   minute: number | null;
+  createdAt: Date;
   club: { id: string; name: string };
 }
 
@@ -29,10 +31,10 @@ export function CardsList({
     return <p className="text-sm text-zinc-500">Aucun carton pour le moment.</p>;
   }
 
-  const sorted = [...cards].sort((a, b) => (a.minute ?? 0) - (b.minute ?? 0));
+  const sorted = sortByMinuteThenCreatedAt(cards);
 
   return (
-    <ul className="space-y-1.5">
+    <ul className="space-y-0">
       {sorted.map((card) => (
         <CardItem
           key={card.id}

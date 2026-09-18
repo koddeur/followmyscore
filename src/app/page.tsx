@@ -31,6 +31,12 @@ export default async function HomePage() {
     <div className="space-y-8">
       <header className="space-y-4 py-8 text-center sm:py-12">
         <div className="space-y-2">
+          {/* eslint-disable-next-line @next/next/no-img-element -- avoids next/image's optimizer, which needs sharp (unavailable on this host) */}
+          <img
+            src="/logo.png"
+            alt="FollowMyScore"
+            className="mx-auto mb-4 h-20 w-20 sm:h-24 sm:w-24"
+          />
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             Follow<span className="text-accent">My</span>Score
           </h1>

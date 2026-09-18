@@ -1,4 +1,5 @@
 import { SubstitutionItem } from "@/components/SubstitutionItem";
+import { sortByMinuteThenCreatedAt } from "@/lib/eventSort";
 import type { ClubInfo, LineupEntryInfo } from "@/components/PlayerFields";
 
 export interface SubstitutionData {
@@ -8,6 +9,7 @@ export interface SubstitutionData {
   playerOutName: string | null;
   playerOutNumber: number | null;
   minute: number | null;
+  createdAt: Date;
   club: { id: string; name: string };
 }
 
@@ -30,10 +32,10 @@ export function SubstitutionsList({
     return <p className="text-sm text-zinc-500">Aucun changement pour le moment.</p>;
   }
 
-  const sorted = [...substitutions].sort((a, b) => (a.minute ?? 0) - (b.minute ?? 0));
+  const sorted = sortByMinuteThenCreatedAt(substitutions);
 
   return (
-    <ul className="space-y-1.5">
+    <ul className="space-y-0">
       {sorted.map((substitution) => (
         <SubstitutionItem
           key={substitution.id}

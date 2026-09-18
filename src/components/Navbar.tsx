@@ -23,7 +23,7 @@ export function Navbar({ user }: { user: NavUser | null }) {
       <div className="relative mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-2 px-4 py-3 sm:grid sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-3 sm:px-6">
         <Link
           href="/"
-          className="flex min-w-0 shrink-0 items-center gap-2 justify-self-start font-semibold tracking-tight"
+          className="flex min-w-0 shrink-0 items-center gap-3 justify-self-start font-semibold tracking-tight"
         >
           <Image
             src="/logo.png"

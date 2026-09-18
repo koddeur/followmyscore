@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { RecentEventHighlight } from "@/components/RecentEventHighlight";
 import type { MatchStatus, UpdateType } from "../../generated/prisma/enums";
 
 export interface TimelineEntry {
@@ -50,23 +51,27 @@ export function Timeline({ entries }: { entries: TimelineEntry[] }) {
   }
 
   return (
-    <ol className="space-y-3">
+    <ol className="space-y-0">
       {entries.map((entry) => (
-        <li key={entry.id} className="flex gap-3 text-sm">
-          <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-          <div>
-            <p>{describe(entry)}</p>
-            <p className="text-xs text-zinc-500">
-              {entry.user ? (
-                <Link href={`/users/${entry.user.username}`} className="font-medium hover:text-accent hover:underline">
-                  {entry.user.name}
-                </Link>
-              ) : (
-                "Utilisateur supprimé"
-              )}{" "}
-              · {format(entry.createdAt, "d MMM 'à' HH:mm", { locale: fr })}
-            </p>
-          </div>
+        <li key={entry.id}>
+          <RecentEventHighlight createdAt={entry.createdAt} className="rounded-lg border p-2">
+            <div className="flex gap-3 text-sm">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+              <div>
+                <p>{describe(entry)}</p>
+                <p className="text-xs text-zinc-500">
+                  {entry.user ? (
+                    <Link href={`/users/${entry.user.username}`} className="font-medium hover:text-accent hover:underline">
+                      {entry.user.name}
+                    </Link>
+                  ) : (
+                    "Utilisateur supprimé"
+                  )}{" "}
+                  · {format(entry.createdAt, "d MMM 'à' HH:mm", { locale: fr })}
+                </p>
+              </div>
+            </div>
+          </RecentEventHighlight>
         </li>
       ))}
     </ol>

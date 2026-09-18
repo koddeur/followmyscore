@@ -4,6 +4,8 @@ import { useState } from "react";
 import { updateCard, deleteCard } from "@/app/actions/cards";
 import { DeleteEventButton } from "@/components/DeleteEventButton";
 import { CardEventForm } from "@/components/CardEventForm";
+import { RecentEventHighlight } from "@/components/RecentEventHighlight";
+import { CardIcon } from "@/components/MatchEventIcons";
 import type { ClubInfo, LineupEntryInfo } from "@/components/PlayerFields";
 import type { CardData } from "@/components/CardsList";
 
@@ -48,47 +50,51 @@ export function CardItem({
   }
 
   return (
-    <li className="flex items-center gap-2 text-sm">
-      <span className="w-10 shrink-0 text-right font-mono text-zinc-500">
-        {card.minute !== null ? `${card.minute}'` : ""}
-      </span>
-      <span>{card.type === "YELLOW" ? "🟨" : "🟥"}</span>
-      <span className="font-medium">
-        {card.playerName ?? <span className="italic text-zinc-400">Joueur non renseigné</span>}
-      </span>
-      {card.number !== null && <span className="text-zinc-500">#{card.number}</span>}
-      <span className="text-zinc-500">({card.club.name})</span>
-      {canEdit && (
-        <div className="ml-auto flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setEditing(true)}
-            className="shrink-0 text-zinc-400 hover:text-accent"
-            aria-label="Modifier ce carton"
-            title="Modifier ce carton"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="pointer-events-none h-4 w-4"
-              aria-hidden="true"
-            >
-              <path d="M12 20h9" />
-              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
-            </svg>
-          </button>
-          <DeleteEventButton
-            action={deleteCard.bind(null, card.id)}
-            confirmMessage="Supprimer ce carton ?"
-            label="Supprimer ce carton"
-          />
+    <li>
+      <RecentEventHighlight createdAt={card.createdAt} className="rounded-lg border p-1.5">
+        <div className="flex items-center gap-2 text-sm">
+          <span className="w-10 shrink-0 text-right font-mono text-zinc-500">
+            {card.minute !== null ? `${card.minute}'` : ""}
+          </span>
+          <CardIcon type={card.type} className="h-3.5 w-3.5 shrink-0" />
+          <span className="font-medium">
+            {card.playerName ?? <span className="italic text-zinc-400">Joueur non renseigné</span>}
+          </span>
+          {card.number !== null && <span className="text-zinc-500">#{card.number}</span>}
+          <span className="text-zinc-500">({card.club.name})</span>
+          {canEdit && (
+            <div className="ml-auto flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                className="shrink-0 text-zinc-400 hover:text-accent"
+                aria-label="Modifier ce carton"
+                title="Modifier ce carton"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="pointer-events-none h-4 w-4"
+                  aria-hidden="true"
+                >
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                </svg>
+              </button>
+              <DeleteEventButton
+                action={deleteCard.bind(null, card.id)}
+                confirmMessage="Supprimer ce carton ?"
+                label="Supprimer ce carton"
+              />
+            </div>
+          )}
         </div>
-      )}
+      </RecentEventHighlight>
     </li>
   );
 }

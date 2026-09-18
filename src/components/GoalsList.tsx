@@ -1,4 +1,5 @@
 import { GoalItem } from "@/components/GoalItem";
+import { sortByMinuteThenCreatedAt } from "@/lib/eventSort";
 import type { ClubInfo, LineupEntryInfo } from "@/components/PlayerFields";
 
 export interface GoalData {
@@ -9,6 +10,7 @@ export interface GoalData {
   minute: number | null;
   ownGoal: boolean;
   penalty: boolean;
+  createdAt: Date;
   club: { id: string; name: string };
 }
 
@@ -31,10 +33,10 @@ export function GoalsList({
     return <p className="text-sm text-zinc-500">Aucun but pour le moment.</p>;
   }
 
-  const sorted = [...goals].sort((a, b) => (a.minute ?? 0) - (b.minute ?? 0));
+  const sorted = sortByMinuteThenCreatedAt(goals);
 
   return (
-    <ul className="space-y-1.5">
+    <ul className="space-y-0">
       {sorted.map((goal) => (
         <GoalItem
           key={goal.id}
