@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 import { Navbar } from "@/components/Navbar";
+import { MobileNavPanel } from "@/components/MobileNavPanel";
 import { SocialLinks } from "@/components/SocialLinks";
 import { CookieBanner } from "@/components/CookieBanner";
 import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
@@ -24,7 +27,19 @@ export const metadata: Metadata = {
     "Suivez et mettez à jour en direct les résultats de matchs de football amateur.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const session = await auth();
+
+  // avatarUrl isn't on the session/JWT: manually-uploaded avatars are stored
+  // as base64 data URIs (tens of KB), and putting that in the session cookie
+  // blows past the HTTP header size limit (431 errors). Fetched fresh here
+  // once and shared by both Navbar and MobileNavPanel.
+  const avatarUrl = session?.user
+    ? (await prisma.user.findUnique({ where: { id: session.user.id }, select: { avatarUrl: true } }))
+        ?.avatarUrl ?? null
+    : null;
+  const user = session?.user ? { ...session.user, avatarUrl } : null;
+
   return (
     <html
       lang="fr"
@@ -41,31 +56,38 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <Navbar />
+        <Navbar user={user} />
+        <MobileNavPanel user={user} />
         <EmailVerificationBanner />
         <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">
           {children}
         </main>
-        <footer className="border-t border-border py-6 text-center text-xs text-zinc-500">
-          <p>FollowMyScore — projet collaboratif de suivi de matchs amateurs.</p>
-          <p className="mt-1 flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
-            <Link href="/comment-ca-marche" className="hover:text-foreground hover:underline">
-              Comment ça marche
-            </Link>
-            <Link href="/contact" className="hover:text-foreground hover:underline">
-              Contacter le support
-            </Link>
-            <Link href="/mentions-legales" className="hover:text-foreground hover:underline">
-              Mentions légales
-            </Link>
-            <Link href="/rgpd" className="hover:text-foreground hover:underline">
-              RGPD
-            </Link>
-            <Link href="/cgu" className="hover:text-foreground hover:underline">
-              CGU
-            </Link>
-          </p>
-          <SocialLinks />
+        <footer className="border-t border-border py-6 text-xs text-zinc-500">
+          <div className="mx-auto grid max-w-5xl grid-cols-1 items-center gap-6 px-4 text-center sm:grid-cols-[1fr_auto_1fr] sm:px-6 sm:text-left">
+            <p className="sm:justify-self-start">FollowMyScore — Tous droits réservés.</p>
+
+            <div className="sm:justify-self-center">
+              <SocialLinks />
+            </div>
+
+            <nav className="flex flex-col items-center gap-1 sm:items-end sm:justify-self-end">
+              <Link href="/comment-ca-marche" className="hover:text-foreground hover:underline">
+                Comment ça marche
+              </Link>
+              <Link href="/contact" className="hover:text-foreground hover:underline">
+                Contacter le support
+              </Link>
+              <Link href="/mentions-legales" className="hover:text-foreground hover:underline">
+                Mentions légales
+              </Link>
+              <Link href="/rgpd" className="hover:text-foreground hover:underline">
+                RGPD
+              </Link>
+              <Link href="/cgu" className="hover:text-foreground hover:underline">
+                CGU
+              </Link>
+            </nav>
+          </div>
         </footer>
         <CookieBanner />
       </body>

@@ -27,12 +27,20 @@ export async function sendMail(opts: {
   subject: string;
   html: string;
   text: string;
+  replyTo?: string;
 }): Promise<boolean> {
   if (!isMailerEnabled()) {
     console.warn(`[mailer] SMTP not configured — skipped email to ${opts.to}`);
     return false;
   }
 
-  await getTransporter().sendMail({ from, to: opts.to, subject: opts.subject, html: opts.html, text: opts.text });
+  await getTransporter().sendMail({
+    from,
+    to: opts.to,
+    subject: opts.subject,
+    html: opts.html,
+    text: opts.text,
+    replyTo: opts.replyTo,
+  });
   return true;
 }

@@ -1,25 +1,18 @@
 import Image from "next/image";
 import Link from "next/link";
-import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
 import { NavLinks } from "@/components/NavLinks";
 import { NavSearch } from "@/components/NavSearch";
-import { MobileNav } from "@/components/MobileNav";
+import { MobileNavTriggers } from "@/components/MobileNavTriggers";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
-export async function Navbar() {
-  const session = await auth();
+interface NavUser {
+  name?: string | null;
+  username?: string | null;
+  role?: string | null;
+  avatarUrl?: string | null;
+}
 
-  // avatarUrl isn't on the session/JWT: manually-uploaded avatars are stored
-  // as base64 data URIs (tens of KB), and putting that in the session cookie
-  // blows past the HTTP header size limit (431 errors). Fetched fresh here
-  // instead, same as every other page that shows an avatar.
-  const avatarUrl = session?.user
-    ? (await prisma.user.findUnique({ where: { id: session.user.id }, select: { avatarUrl: true } }))
-        ?.avatarUrl ?? null
-    : null;
-  const user = session?.user ? { ...session.user, avatarUrl } : null;
-
+export function Navbar({ user }: { user: NavUser | null }) {
   return (
     <header className="sticky top-0 z-10 border-b border-border">
       {/* Kept off the sticky element itself: backdrop-filter on a position:sticky
@@ -50,11 +43,19 @@ export async function Navbar() {
 
         <div className="flex shrink-0 items-center justify-self-end gap-2 sm:gap-3">
           <nav className="hidden shrink-0 items-center gap-3 text-sm sm:flex">
+            <Link
+              href="/matches"
+              className="flex h-9 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-accent bg-accent px-3 text-sm font-medium text-accent-foreground hover:opacity-90"
+            >
+              Scores
+            </Link>
             <NavLinks user={user} />
           </nav>
 
-          <ThemeToggle />
-          <MobileNav user={user} />
+          <div className="hidden sm:block">
+            <ThemeToggle />
+          </div>
+          <MobileNavTriggers />
         </div>
       </div>
     </header>

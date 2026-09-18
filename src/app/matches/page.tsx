@@ -2,7 +2,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { MatchCard } from "@/components/MatchCard";
 import { ScrollToTop } from "@/components/ScrollToTop";
-import { STATUS_PRIORITY } from "@/lib/matchStatus";
+import { MatchStatusFilter } from "@/components/MatchStatusFilter";
+import { STATUS_PRIORITY, STATUS_FILTER_GROUPS, isMatchStatusFilter } from "@/lib/matchStatus";
 
 const PAGE_SIZE = 30;
 
@@ -12,17 +13,21 @@ export const metadata = {
 };
 
 export default async function AllMatchesPage({ searchParams }: PageProps<"/matches">) {
-  const { page: pageParam } = await searchParams;
+  const { page: pageParam, status: statusParam } = await searchParams;
   const page = Math.max(1, Number(pageParam) || 1);
+  const statusFilter =
+    typeof statusParam === "string" && isMatchStatusFilter(statusParam) ? statusParam : null;
+  const where = statusFilter ? { status: { in: STATUS_FILTER_GROUPS[statusFilter] } } : undefined;
 
   const [matches, total] = await Promise.all([
     prisma.match.findMany({
+      where,
       include: { homeClub: true, awayClub: true },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
     }),
-    prisma.match.count(),
+    prisma.match.count({ where }),
   ]);
 
   matches.sort((a, b) => STATUS_PRIORITY[a.status] - STATUS_PRIORITY[b.status]);
@@ -30,7 +35,11 @@ export default async function AllMatchesPage({ searchParams }: PageProps<"/match
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   function pageHref(p: number) {
-    return p > 1 ? `/matches?page=${p}` : "/matches";
+    const params = new URLSearchParams();
+    if (statusFilter) params.set("status", statusFilter);
+    if (p > 1) params.set("page", String(p));
+    const qs = params.toString();
+    return qs ? `/matches?${qs}` : "/matches";
   }
 
   return (
@@ -51,13 +60,21 @@ export default async function AllMatchesPage({ searchParams }: PageProps<"/match
         </Link>
       </div>
 
+      <MatchStatusFilter active={statusFilter} />
+
       {matches.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-zinc-500">
-          Aucun match pour le moment.{" "}
-          <Link href="/matches/new" className="font-medium text-accent hover:underline">
-            Crée le premier match
-          </Link>
-          .
+          {statusFilter ? (
+            "Aucun match ne correspond à ce filtre."
+          ) : (
+            <>
+              Aucun match pour le moment.{" "}
+              <Link href="/matches/new" className="font-medium text-accent hover:underline">
+                Crée le premier match
+              </Link>
+              .
+            </>
+          )}
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

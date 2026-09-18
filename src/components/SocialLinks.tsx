@@ -52,7 +52,7 @@ function SocialIcon({ label }: { label: (typeof LINKS)[number]["label"] }) {
 
 export function SocialLinks() {
   return (
-    <div className="mt-3 flex flex-col items-center gap-2">
+    <div className="flex flex-col items-center gap-2">
       <p>Suivez-nous</p>
       <div className="flex items-center gap-2">
         {LINKS.map((link) => (

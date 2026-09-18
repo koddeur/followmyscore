@@ -39,7 +39,7 @@ export function NavLinks({
       <Link
         href={loginHref}
         onClick={onNavigate}
-        className="flex h-9 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-accent bg-accent px-3 text-sm font-medium text-accent-foreground hover:opacity-90"
+        className="flex h-9 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-border px-3 text-sm font-medium text-zinc-500 hover:border-accent hover:text-foreground"
       >
         Connexion
       </Link>
