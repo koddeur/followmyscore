@@ -36,9 +36,8 @@ export async function generateMetadata({ params }: PageProps<"/matches/[slug]">)
 
   if (!match) return {};
 
-  const hasScore = match.status === "LIVE" || match.status === "HALFTIME" || match.status === "INTERRUPTED" || match.status === "FINISHED";
-  const title = hasScore
-    ? `${match.homeClub.name} ${match.homeScore} - ${match.awayScore} ${match.awayClub.name}`
+  const title = match.competition
+    ? `${match.homeClub.name} vs ${match.awayClub.name} — ${match.competition}`
     : `${match.homeClub.name} vs ${match.awayClub.name}`;
 
   const descriptionParts = [STATUS_LABELS[match.status]];
