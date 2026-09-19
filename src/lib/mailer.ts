@@ -6,7 +6,10 @@ const port = Number(process.env.SMTP_PORT ?? 587);
 const secure = process.env.SMTP_SECURE === "true";
 const user = process.env.SMTP_USER;
 const pass = process.env.SMTP_PASSWORD;
-const from = process.env.SMTP_FROM || user;
+// Some hosting panels store env values with the surrounding quotes taken literally
+// (e.g. `"Name <email>"` including the quote characters), which breaks address
+// parsing and gets the sender rejected by the SMTP server as unrecognized.
+const from = (process.env.SMTP_FROM || user)?.trim().replace(/^"(.*)"$/, "$1");
 
 export function isMailerEnabled(): boolean {
   return Boolean(host && user && pass);

@@ -116,7 +116,7 @@ export default async function HomePage() {
           href="/matches/new"
           className="mt-4 inline-block rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
         >
-          Créer un match
+          Ajouter un match
         </Link>
       </div>
     </div>

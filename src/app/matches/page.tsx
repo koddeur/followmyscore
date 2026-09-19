@@ -56,7 +56,7 @@ export default async function AllMatchesPage({ searchParams }: PageProps<"/match
           href="/matches/new"
           className="shrink-0 rounded-full bg-accent px-3.5 py-1.5 text-center text-sm font-medium text-accent-foreground hover:opacity-90"
         >
-          Créer un match
+          Ajouter un match
         </Link>
       </div>
 
